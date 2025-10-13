@@ -1,0 +1,8 @@
+mcp
+proxmoxer
+requests
+aiohttp
+python-dotenv
+configparser
+apscheduler
+gotify
