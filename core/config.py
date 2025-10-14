@@ -1,8 +1,9 @@
 # core/config.py
 import os
 from pathlib import Path
-from dotenv import load_dotenv
+
 import requests
+from dotenv import load_dotenv
 
 
 class MCPConfig:
@@ -50,6 +51,10 @@ class MCPConfig:
         self.event_email_enabled = self._get_bool("EVENT_EMAIL_ENABLED", default=False)
         self.event_syslog_enabled = self._get_bool("EVENT_SYSLOG_ENABLED", default=False)
 
+        # Syslog input configuration
+        self.event_syslog_listen_port = self._get_int("EVENT_SYSLOG_LISTEN_PORT", default=514)
+        self.event_syslog_parse_format = os.getenv("EVENT_SYSLOG_PARSE_FORMAT", "proxmox")
+
         # Gotify input
         self.gotify_in_enabled = self._get_bool("GOTIFY_IN_ENABLED", default=False)
         self.gotify_in_server_url = os.getenv("GOTIFY_IN_SERVER_URL")
@@ -59,6 +64,7 @@ class MCPConfig:
         # Discord input (optional)
         self.discord_in_enabled = self._get_bool("DISCORD_IN_ENABLED", default=False)
         self.discord_in_webhook = os.getenv("DISCORD_IN_WEBHOOK_URL")
+        self.discord_in_poll_interval = self._get_int("DISCORD_IN_POLL_INTERVAL", default=30)
 
         # -----------------------
         # Notification providers (Output)

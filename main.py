@@ -6,15 +6,15 @@ import sys
 
 from core.config import MCPConfig
 from core.event_dispatcher import EventDispatcher
-
-# Input listeners
-from modules.input.websocket_listener import WebSocketListener
+from modules.input.discord_listener import DiscordListener
 from modules.input.email_listener import EmailListener
 from modules.input.gotify_listener import GotifyListener
-
+from modules.input.syslog_listener import SyslogListener
+# Input listeners
+from modules.input.websocket_listener import WebSocketListener
+from modules.output.discord_notifier import DiscordNotifier
 # Output notifiers
 from modules.output.gotify_notifier import GotifyNotifier
-# from modules.output.discord_notifier import DiscordNotifier
 
 # --------------------------
 # Load configuration
@@ -39,8 +39,8 @@ args = parser.parse_args()
 notifiers = []
 if config.gotify_out_enabled:
     notifiers.append(GotifyNotifier(config))
-# if config.discord_out_enabled:
-#     notifiers.append(DiscordNotifier(config))
+if config.discord_out_enabled:
+    notifiers.append(DiscordNotifier(config))
 
 dispatcher = EventDispatcher(notifiers)
 
@@ -54,8 +54,10 @@ if config.event_email_enabled:
     listeners.append(EmailListener(config, event_callback=dispatcher.dispatch))
 if config.gotify_in_enabled:
     listeners.append(GotifyListener(config, event_callback=dispatcher.dispatch))
-# if config.discord_in_enabled:
-#     listeners.append(DiscordListener(config, event_callback=dispatcher.dispatch))
+if config.event_syslog_enabled:
+    listeners.append(SyslogListener(config, event_callback=dispatcher.dispatch))
+if config.discord_in_enabled:
+    listeners.append(DiscordListener(config, event_callback=dispatcher.dispatch))
 
 # --------------------------
 # Test Connection & IO Modules
@@ -77,6 +79,16 @@ if args.test_connection:
             except Exception as e:
                 print(f"❌ Gotify output test failed: {e}")
                 success = False
+                
+        if config.discord_out_enabled:
+            print("💬 Testing Discord output notifier...")
+            notifier = DiscordNotifier(config)
+            try:
+                await notifier.send("MCP Test", "Testing Discord output notifier.", priority="info")
+                print("✅ Discord output test sent successfully.")
+            except Exception as e:
+                print(f"❌ Discord output test failed: {e}")
+                success = False
         return success
 
     async def test_listeners():
@@ -89,6 +101,26 @@ if args.test_connection:
                 print("✅ Gotify input test stream succeeded.")
             else:
                 print("❌ Gotify input test stream failed.")
+                success = False
+        
+        if config.event_syslog_enabled:
+            print("📡 Testing Syslog input listener (port binding)...")
+            listener = SyslogListener(config, event_callback=lambda t, m: None)
+            result = await listener.test_connection()
+            if result:
+                print("✅ Syslog input test port binding succeeded.")
+            else:
+                print("❌ Syslog input test port binding failed.")
+                success = False
+                
+        if config.discord_in_enabled:
+            print("💬 Testing Discord input listener (webhook connectivity)...")
+            listener = DiscordListener(config, event_callback=lambda t, m: None)
+            result = await listener.test_connection()
+            if result:
+                print("✅ Discord input test webhook succeeded.")
+            else:
+                print("❌ Discord input test webhook failed.")
                 success = False
         return success
 

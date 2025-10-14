@@ -12,12 +12,14 @@ This project bridges the gap between **Proxmox’s event system** and your autom
 Proxmox generates valuable real-time data through:
 - **Email notifications** (alerts, backup results, hardware events)
 - **WebSocket events** (VM start/stop, migration progress, UI updates)
+- **External integrations** (Gotify notifications, Discord webhooks)
 
-The MCP Server ingests both sources and provides:
+The MCP Server ingests all these sources and provides:
 - A **live state view** of all nodes, VMs, and PBS jobs.
 - **Structured event forwarding** to MCP Agents for downstream processing.
 - **Automated troubleshooting** and remediation via scripts or AI logic.
-- A unified bridge between Proxmox’s raw signals and your automation stack.
+- **Multi-channel notifications** (Gotify, Discord, email, webhooks).
+- A unified bridge between Proxmox's raw signals and your automation stack.
 
 ---
 
@@ -59,16 +61,18 @@ Proxmox-MCP/
 ├── modules/
 │   ├── input/                                  # Event ingestion modules
 │   │   ├── base.py                             # BaseListener class
-│   │   ├── email_listener.py                   # EmailListener
-│   │   ├── websocket_listener.py               # WebSocketListener ⚙ Updated for standalone & clustered support
-│   │   └── syslog_listener.py                  # SyslogListener (future)
+│   │   ├── discord_listener.py                 # DiscordListener ✅ Implemented
+│   │   ├── email_listener.py                   # EmailListener ✅ Implemented
+│   │   ├── gotify_listener.py                  # GotifyListener ✅ Implemented  
+│   │   ├── syslog_listener.py                  # SyslogListener ✅ Implemented
+│   │   └── websocket_listener.py               # WebSocketListener ✅ Standalone & clustered support
 │   ├── output/                                 # Event dispatch / notification modules
 │   │   ├── base.py                             # BaseNotifier class
-│   │   ├── discord_notifier.py                 # DiscordNotifier
-│   │   ├── gotify_notifier.py                  # GotifyNotifier
+│   │   ├── discord_notifier.py                 # DiscordNotifier ✅ Implemented
+│   │   ├── gotify_notifier.py                  # GotifyNotifier ✅ Implemented
 │   │   ├── ntfy_notifier.py                    # NtfyNotifier
 │   │   └── email_notifier.py                   # EmailNotifier (future)
-├── main.py                                     ⚙ Full Demo Implementation
+├── main.py                                     ✅ Demo Implementation with --test-connection
 ├── .env.example                                ✅ Added
 ├── requirements.txt                            ✅ Added
 └── README.md                                   ✅ Updated
@@ -91,11 +95,12 @@ Each section can be toggled to match your deployment and notification preference
 
 ## 🏗️ Key Features (Progress So Far)
 
-- **Full PVE/PBS API control** – planned
-- **Real-time event handling** – ✅ Email & WebSocket ingestion implemented
-- **Clustered & standalone node support** – ⚙ WebSocket and dispatcher updated for clusters
-- **Agent notifications and automation** – ⚙ Dispatcher implemented, Agent integration in work
-- **Pluggable architecture** – easy to extend with custom notifiers or handlers.
+- **Full PVE/PBS API control** – ✅ API testing implemented with `--test-connection`
+- **Real-time event handling** – ✅ Email, WebSocket & Gotify ingestion implemented
+- **Clustered & standalone node support** – ✅ WebSocket and dispatcher updated for clusters
+- **Agent notifications and automation** – ✅ Dispatcher & Gotify notifier implemented
+- **Pluggable architecture** – ✅ Easy to extend with custom notifiers or handlers
+- **Connection validation** – ✅ Comprehensive testing via `python main.py --test-connection`
 
 ---
 
@@ -226,21 +231,39 @@ Similar to PVE:
 
 ### ✅ Final Step: Test Connectivity
 
-After setting your `.env` file, you can run a simple test:
+After configuring your `.env` file, validate your setup with the built-in connection tester:
 
 ```bash
-# Start MCP Server and demo event flow
-python main.py
-
-# Test API/WebSocket connectivity without full run
+# Test all configured nodes and IO modules
 python main.py --test-connection
 ```
 
-***What happens in `--test-connection`:###
- - Validates credentials for each configured PVE and PBS node
- - Connects to WebSocket endpoints for each node and verifies subscription
- - Reports any errors, warnings, or successful connections
- - Does not start full listener or dispatcher loops
+**What `--test-connection` validates:**
+- ✅ **PVE/PBS API Access** – Tests credentials and connectivity for each configured node
+- ✅ **WebSocket Endpoints** – Verifies subscription capability to live event streams  
+- ✅ **Input Listeners** – Tests Gotify stream, Discord webhook, and Syslog port binding
+- ✅ **Output Notifiers** – Sends test notifications via Gotify and Discord (if enabled)
+- ✅ **Configuration Parsing** – Validates `.env` structure and required parameters
+
+**Expected Output:**
+```
+🔗 Testing connectivity to configured nodes...
+✅ PVE Node 'pve-main' connectivity test passed
+✅ PBS Node 'pbs-main' connectivity test passed
+🔔 Testing Gotify output notifier...
+✅ Gotify output test sent successfully
+🔔 Testing Gotify input listener (stream)...
+✅ Gotify input test stream succeeded
+
+🎉 All nodes and IO modules are reachable and ready!
+```
+
+Once all tests pass, you can start the full MCP server:
+
+```bash
+# Start MCP Server with real-time event processing
+python main.py
+```
 
 ---
 
@@ -248,8 +271,10 @@ python main.py --test-connection
 
 * [x] **Email** – reads Proxmox email alerts
 * [x] **WebSocket** – subscribes to live Proxmox event streams
-* [⚙] **Gotify** – basic dispatcher implemented
-* [⚙] **Discord/Ntfy** – planned
+* [x] **Syslog** – listens for UDP syslog messages from Proxmox nodes
+* [x] **Gotify** – ✅ Full input/output implementation with streaming and notifications
+* [x] **Discord** – ✅ Full input/output implementation with webhooks and rich embeds
+* [⚙] **Ntfy** – planned
 
 > All notification backends use a unified interface; adding a new notifier only requires implementing `.send(title, message)`.
 
