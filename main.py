@@ -6,6 +6,7 @@ import sys
 
 from core.config import MCPConfig
 from core.event_dispatcher import EventDispatcher
+from core.manager import MCPManager
 from modules.input.discord_listener import DiscordListener
 from modules.input.email_listener import EmailListener
 from modules.input.gotify_listener import GotifyListener
@@ -168,6 +169,11 @@ async def main():
 # Entry Point
 # --------------------------
 if __name__ == "__main__":
+    print("🔄 NOTE: For production use, consider using the new MCPManager:")
+    print("   python core/manager.py [--test]")
+    print("   (This legacy main.py will be maintained for compatibility)")
+    print()
+    
     try:
         asyncio.run(main())
     except KeyboardInterrupt:

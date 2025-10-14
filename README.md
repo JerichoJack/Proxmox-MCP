@@ -56,8 +56,8 @@ Proxmox-MCP/
 │   ├── config.py (MCPConfig)                   ✅ Implemented
 │   ├── event_dispatcher.py (EventDispatcher)   ✅ Implemented
 │   ├── event_listener.py (EventListener)       ⚙ In Work
-│   ├── manager.py (MCPManager)                 ⚙ In Work
-│   └── utils.py (logging, helpers)             ⚙ In Work
+│   ├── manager.py (MCPManager)                 ✅ Implemented
+│   └── utils.py (logging, helpers)             ✅ Implemented
 ├── modules/
 │   ├── input/                                  # Event ingestion modules
 │   │   ├── base.py                             # BaseListener class
@@ -104,6 +104,56 @@ Each section can be toggled to match your deployment and notification preference
 - **Agent notifications and automation** – ✅ Dispatcher & Gotify notifier implemented
 - **Pluggable architecture** – ✅ Easy to extend with custom notifiers or handlers
 - **Connection validation** – ✅ Comprehensive testing via `python main.py --test-connection`
+
+---
+
+## 🚀 Getting Started
+
+### Quick Start (Recommended)
+
+```powershell
+# Clone repository and setup
+git clone <repository-url>
+cd Proxmox-MCP
+pip install -r requirements.txt
+
+# Copy and configure environment
+cp .env.example .env
+# Edit .env with your Proxmox credentials and preferences
+
+# Test connectivity
+python core/manager.py --test
+
+# Run the server
+python core/manager.py
+```
+
+### Usage Options
+
+**Production Server (Recommended):**
+```powershell
+# Full lifecycle management with graceful shutdown
+python core/manager.py
+```
+
+**Test Connectivity:**
+```powershell
+# Test all nodes and I/O modules
+python core/manager.py --test
+python main.py --test-connection  # Legacy compatibility
+```
+
+**n8n AI Agent Integration:**
+```powershell
+# HTTP API for n8n workflows
+python n8n_agent_interface.py
+```
+
+**Legacy Mode:**
+```powershell
+# Original implementation (maintained for compatibility)
+python main.py
+```
 
 ---
 

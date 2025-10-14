@@ -25,6 +25,8 @@ This roadmap tracks progress on the MCP Server for Proxmox project, including ev
 * [x] `n8n_agent_interface.py` HTTP API for n8n integration
 * [x] `n8n_workflow_proxmox_ai_agent.json` complete AI agent workflow
 * [x] `setup_n8n_agent.py` setup and testing suite
+* [x] `core/manager.py` complete orchestration logic with lifecycle management
+* [x] `core/utils.py` logging & helper functions
 * [x] Roadmap & demo integration plan drafted
 
 ---
@@ -32,8 +34,6 @@ This roadmap tracks progress on the MCP Server for Proxmox project, including ev
 ## ⚙ In Progress
 
 * [⚙] `core/event_listener.py` fully async, cluster-aware
-* [⚙] `core/manager.py` orchestration logic
-* [⚙] `core/utils.py` logging & helper functions
 * [⚙] Notifiers: Ntfy, Email output modules
 * [⚙] MCP Agent integration (event-driven actions)
 * [⚙] Optional Web UI / Dashboard
@@ -53,31 +53,39 @@ The **MCP Server Demo** is now functional with core features implemented:
 5. **Gotify Integration** - Full bidirectional support (input stream + output notifications)
 6. **Discord Integration** - Full bidirectional support (webhook monitoring + rich embed notifications)  
 7. **n8n AI Agent Integration** - Complete AI-powered automation with OpenAI analysis
-6. **Graceful Shutdown** - Proper SIGINT/SIGTERM handling
-7. **Clustered Node Support** - Both PVE & PBS cluster configurations
+8. **MCPManager Orchestration** - Complete lifecycle management with graceful shutdown
+9. **Signal Handling** - Proper SIGINT/SIGTERM handling for production deployment
+10. **Clustered Node Support** - Both PVE & PBS cluster configurations
 
-**Current Status:** `python main.py --test-connection` successfully validates:
+**Current Status:** The MCP Server is now production-ready with multiple operation modes:
+- `python main.py --test-connection` - Comprehensive connectivity testing
+- `python core/manager.py --test` - MCPManager connectivity validation
+- `python core/manager.py` - Run server with full lifecycle management
+- `python n8n_agent_interface.py` - HTTP API for n8n integration
+
+**Validated Components:**
 - PVE/PBS API connectivity and credentials
 - Gotify input/output module functionality  
 - Discord input/output webhook connectivity
 - Syslog input listener port binding capability
 - WebSocket event stream subscriptions
 - Configuration file parsing and validation
+- n8n workflow integration with AI analysis
 
 ## 🚀 Next Steps / Future Enhancements
 
 **Immediate Priorities:**
-8. **Additional Notifiers** - Complete Ntfy and Email output modules
-9. **Enhanced Logging** - Structured logging with optional database storage
-10. **Production Hardening** - Authentication, rate limiting, error handling
+11. **Additional Notifiers** - Complete Ntfy and Email output modules
+12. **Enhanced Logging** - Structured logging with optional database storage
+13. **Production Hardening** - Authentication, rate limiting, error handling
 
 **Future Features:**
-11. **Web UI Dashboard** - Live event monitoring and system status
-12. **Advanced Event Filtering** - Rule-based event processing and routing  
-13. **Backup Automation** - PBS integration for automated backup workflows
-14. **Performance Monitoring** - Resource usage and event throughput metrics
-15. **Multi-Tenant Support** - Support multiple Proxmox clusters
-16. **Machine Learning** - Predictive analytics and failure prevention
+14. **Web UI Dashboard** - Live event monitoring and system status
+15. **Advanced Event Filtering** - Rule-based event processing and routing  
+16. **Backup Automation** - PBS integration for automated backup workflows
+17. **Performance Monitoring** - Resource usage and event throughput metrics
+18. **Multi-Tenant Support** - Support multiple Proxmox clusters
+19. **Machine Learning** - Predictive analytics and failure prevention
 
 ---
 
