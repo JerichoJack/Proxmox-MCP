@@ -1,5 +1,5 @@
 {
-  "name": "Proxmox MCP AI Agent",
+  "name": "Proxmox MCP AI Agent (Simple)",
   "nodes": [
     {
       "parameters": {
@@ -8,7 +8,7 @@
         "responseMode": "responseNode",
         "options": {}
       },
-      "id": "84a08b1e-dc71-4e97-8b5d-d4c8b2a1c7e6",
+      "id": "webhook1",
       "name": "Webhook - Receive Event",
       "type": "n8n-nodes-base.webhook",
       "typeVersion": 1,
@@ -22,7 +22,7 @@
           "timeout": 10000
         }
       },
-      "id": "b2c3d4e5-f6a7-4b8c-9d0e-1f2a3b4c5d6e",
+      "id": "http1",
       "name": "Get Recent Events",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 3,
@@ -30,33 +30,13 @@
     },
     {
       "parameters": {
-        "url": "https://api.openai.com/v1/chat/completions",
-        "authentication": "headerAuth",
-        "sendHeaders": true,
-        "headerParameters": {
-          "parameters": [
-            {
-              "name": "Content-Type",
-              "value": "application/json"
-            }
-          ]
-        },
-        "sendBody": true,
-        "specifyBody": "json",
-        "jsonBody": "{\n  \"model\": \"gpt-4o-mini\",\n  \"messages\": [\n    {\n      \"role\": \"system\",\n      \"content\": \"You are a Proxmox infrastructure AI agent. Analyze Proxmox events and determine appropriate automated responses.\\n\\nYour capabilities:\\n1. Monitor VM states and performance\\n2. Respond to backup events\\n3. Handle storage warnings\\n4. React to node failures\\n5. Send notifications for critical events\\n\\nFor each event, decide:\\n- Severity level (info/warning/critical)\\n- Required actions (none/restart/backup/notify)\\n- Notification channels needed\\n- Follow-up monitoring required\\n\\nRespond in JSON format with:\\n{\\n  \\\"analysis\\\": \\\"Event analysis\\\",\\n  \\\"severity\\\": \\\"info|warning|critical\\\",\\n  \\\"recommended_action\\\": \\\"action to take\\\",\\n  \\\"notification_required\\\": true/false,\\n  \\\"channels\\\": [\\\"discord\\\", \\\"gotify\\\"],\\n  \\\"follow_up\\\": \\\"any follow-up needed\\\"\\n}\"\n    },\n    {\n      \"role\": \"user\",\n      \"content\": \"Analyze this Proxmox event:\\n\\nEvent: {{ $json.title }}\\nMessage: {{ $json.message }}\\nNode: {{ $json.node || 'unknown' }}\\nVM ID: {{ $json.vm_id || 'N/A' }}\\nSeverity: {{ $json.severity || 'info' }}\\nType: {{ $json.event_type || 'general' }}\\nTimestamp: {{ $json.timestamp }}\\n\\nRecent context (last 10 events):\\n{{ JSON.stringify($('Get Recent Events').all()) }}\\n\\nProvide your analysis and recommended actions.\"\n    }\n  ],\n  \"temperature\": 0.3\n}",
-        "options": {}
+        "jsCode": "// Simple rule-based analysis instead of AI\nconst event = $input.first().json;\nconst recentEvents = $('Get Recent Events').all();\n\n// Analyze the event\nlet analysis = {\n  analysis: `Proxmox event detected: ${event.title || 'Unknown event'}`,\n  severity: event.severity || 'info',\n  notification_required: false,\n  channels: ['discord'],\n  recommended_action: 'none',\n  follow_up: 'Monitor for additional events'\n};\n\n// Simple rule-based decisions\nif (event.title && (event.title.includes('error') || event.title.includes('fail'))) {\n  analysis.severity = 'critical';\n  analysis.notification_required = true;\n  analysis.recommended_action = 'investigate';\n} else if (event.title && (event.title.includes('warning') || event.title.includes('warn'))) {\n  analysis.severity = 'warning';\n  analysis.notification_required = true;\n  analysis.recommended_action = 'monitor';\n} else if (event.title && event.title.includes('backup')) {\n  analysis.notification_required = true;\n  analysis.recommended_action = 'verify_backup';\n}\n\n// Check for patterns in recent events\nconst errorCount = recentEvents.filter(e => \n  e.json && e.json.title && \n  (e.json.title.includes('error') || e.json.title.includes('fail'))\n).length;\n\nif (errorCount > 2) {\n  analysis.severity = 'critical';\n  analysis.notification_required = true;\n  analysis.recommended_action = 'emergency_check';\n  analysis.analysis += ` - Multiple errors detected (${errorCount} in recent events)`;\n}\n\nreturn [{ json: analysis }];"
       },
-      "id": "c3d4e5f6-a7b8-4c9d-0e1f-2a3b4c5d6e7f",
-      "name": "AI Agent Analysis",
-      "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 3,
-      "position": [600, 300],
-      "credentials": {
-        "httpHeaderAuth": {
-          "id": "openai-api-key",
-          "name": "OpenAI API Key"
-        }
-      }
+      "id": "code1",
+      "name": "Rule-Based Analysis",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [600, 300]
     },
     {
       "parameters": {
@@ -69,7 +49,7 @@
           "conditions": [
             {
               "id": "condition1",
-              "leftValue": "={{ JSON.parse($json.choices[0].message.content).notification_required }}",
+              "leftValue": "={{ $json.notification_required }}",
               "rightValue": true,
               "operator": {
                 "type": "boolean",
@@ -81,7 +61,7 @@
         },
         "options": {}
       },
-      "id": "d4e5f6a7-b8c9-4d0e-1f2a-3b4c5d6e7f8a",
+      "id": "if1",
       "name": "Check if Notification Needed",
       "type": "n8n-nodes-base.if",
       "typeVersion": 2,
@@ -102,11 +82,11 @@
         },
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "{\n  \"title\": \"{{ $('Webhook - Receive Event').item.json.title }}\",\n  \"message\": \"🤖 AI Analysis: {{ JSON.parse($('AI Agent Analysis').item.json.choices[0].message.content).analysis }}\\n\\n📊 Original Event: {{ $('Webhook - Receive Event').item.json.message }}\\n\\n⚡ Recommended Action: {{ JSON.parse($('AI Agent Analysis').item.json.choices[0].message.content).recommended_action }}\",\n  \"channels\": {{ JSON.stringify(JSON.parse($('AI Agent Analysis').item.json.choices[0].message.content).channels) }},\n  \"priority\": \"{{ JSON.parse($('AI Agent Analysis').item.json.choices[0].message.content).severity }}\"\n}",
+        "jsonBody": "{\n  \"title\": \"{{ $('Webhook - Receive Event').item.json.title || 'Proxmox Event' }}\",\n  \"message\": \"🤖 Analysis: {{ $('Rule-Based Analysis').item.json.analysis }}\\n\\n📊 Original Event: {{ $('Webhook - Receive Event').item.json.message || 'No message' }}\\n\\n⚡ Recommended Action: {{ $('Rule-Based Analysis').item.json.recommended_action }}\",\n  \"channels\": {{ JSON.stringify($('Rule-Based Analysis').item.json.channels) }},\n  \"priority\": \"{{ $('Rule-Based Analysis').item.json.severity }}\"\n}",
         "options": {}
       },
-      "id": "e5f6a7b8-c9d0-4e1f-2a3b-4c5d6e7f8a9b",
-      "name": "Send AI Notification",
+      "id": "http2",
+      "name": "Send Notification",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 3,
       "position": [1000, 200]
@@ -122,7 +102,7 @@
           "conditions": [
             {
               "id": "condition2",
-              "leftValue": "={{ JSON.parse($('AI Agent Analysis').item.json.choices[0].message.content).severity }}",
+              "leftValue": "={{ $('Rule-Based Analysis').item.json.severity }}",
               "rightValue": "critical",
               "operator": {
                 "type": "string",
@@ -134,7 +114,7 @@
         },
         "options": {}
       },
-      "id": "f6a7b8c9-d0e1-4f2a-3b4c-5d6e7f8a9b0c",
+      "id": "if2",
       "name": "Check if Critical Event",
       "type": "n8n-nodes-base.if",
       "typeVersion": 2,
@@ -155,10 +135,10 @@
         },
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "{\n  \"action\": \"{{ JSON.parse($('AI Agent Analysis').item.json.choices[0].message.content).recommended_action }}\",\n  \"target\": \"{{ $('Webhook - Receive Event').item.json.vm_id || $('Webhook - Receive Event').item.json.node || 'unknown' }}\",\n  \"parameters\": {\n    \"automated\": true,\n    \"triggered_by\": \"ai_agent\",\n    \"severity\": \"{{ JSON.parse($('AI Agent Analysis').item.json.choices[0].message.content).severity }}\"\n  }\n}",
+        "jsonBody": "{\n  \"action\": \"{{ $('Rule-Based Analysis').item.json.recommended_action }}\",\n  \"target\": \"{{ $('Webhook - Receive Event').item.json.vm_id || $('Webhook - Receive Event').item.json.node || 'unknown' }}\",\n  \"parameters\": {\n    \"automated\": true,\n    \"triggered_by\": \"rule_based_agent\",\n    \"severity\": \"{{ $('Rule-Based Analysis').item.json.severity }}\"\n  }\n}",
         "options": {}
       },
-      "id": "a7b8c9d0-e1f2-4a3b-4c5d-6e7f8a9b0c1d",
+      "id": "http3",
       "name": "Execute Emergency Action",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 3,
@@ -167,10 +147,10 @@
     {
       "parameters": {
         "respondWith": "json",
-        "responseBody": "{\n  \"status\": \"processed\",\n  \"ai_analysis\": \"{{ JSON.parse($('AI Agent Analysis').item.json.choices[0].message.content).analysis }}\",\n  \"actions_taken\": \"{{ $runIndex === 0 ? 'notification_sent' : 'notification_sent, emergency_action_executed' }}\",\n  \"timestamp\": \"{{ new Date().toISOString() }}\"\n}",
+        "responseBody": "{\n  \"status\": \"processed\",\n  \"analysis\": \"{{ $('Rule-Based Analysis').item.json.analysis }}\",\n  \"actions_taken\": \"{{ $runIndex === 0 ? 'notification_sent' : 'notification_sent, emergency_action_executed' }}\",\n  \"timestamp\": \"{{ new Date().toISOString() }}\"\n}",
         "options": {}
       },
-      "id": "b8c9d0e1-f2a3-4b4c-5d6e-7f8a9b0c1d2e",
+      "id": "response1",
       "name": "Webhook Response",
       "type": "n8n-nodes-base.respondToWebhook",
       "typeVersion": 1,
@@ -187,7 +167,7 @@
           ]
         }
       },
-      "id": "c9d0e1f2-a3b4-4c5d-6e7f-8a9b0c1d2e3f",
+      "id": "cron1",
       "name": "Health Check Timer",
       "type": "n8n-nodes-base.cron",
       "typeVersion": 1,
@@ -200,7 +180,7 @@
           "timeout": 5000
         }
       },
-      "id": "d0e1f2a3-b4c5-4d6e-7f8a-9b0c1d2e3f4a",
+      "id": "http4",
       "name": "Check MCP Status",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 3,
@@ -229,7 +209,7 @@
         },
         "options": {}
       },
-      "id": "e1f2a3b4-c5d6-4e7f-8a9b-0c1d2e3f4a5b",
+      "id": "if3",
       "name": "Check if MCP Down",
       "type": "n8n-nodes-base.if",
       "typeVersion": 2,
@@ -259,7 +239,7 @@
         },
         "options": {}
       },
-      "id": "f2a3b4c5-d6e7-4f8a-9b0c-1d2e3f4a5b6c",
+      "id": "http5",
       "name": "Alert MCP System Down",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 3,
@@ -276,14 +256,14 @@
             "index": 0
           },
           {
-            "node": "AI Agent Analysis",
+            "node": "Rule-Based Analysis",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "AI Agent Analysis": {
+    "Rule-Based Analysis": {
       "main": [
         [
           {
@@ -303,14 +283,14 @@
       "main": [
         [
           {
-            "node": "Send AI Notification",
+            "node": "Send Notification",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Send AI Notification": {
+    "Send Notification": {
       "main": [
         [
           {
@@ -382,13 +362,18 @@
     "executionOrder": "v1"
   },
   "staticData": null,
-  "tags": [],
+  "tags": [
+    "proxmox", 
+    "mcp",
+    "monitoring",
+    "automation"
+  ],
   "triggerCount": 2,
   "updatedAt": "2024-10-13T12:00:00.000Z",
   "versionId": "1.0.0",
   "meta": {
-    "instanceId": "n8n-proxmox-mcp-agent"
+    "instanceId": "n8n-proxmox-mcp-agent-simple"
   },
   "active": false,
-  "id": 1
+  "id": 2
 }
