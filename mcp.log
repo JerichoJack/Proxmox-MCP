@@ -1,0 +1,46 @@
+nohup: ignoring input
+2025-10-14 11:50:05,536 [INFO] EventDispatcher initialized with 2 notifier(s).
+2025-10-14 11:50:05,536 [INFO] EventDispatcher initialized with 2 notifier(s).
+2025-10-14 11:50:05,536 [INFO] Proxmox MCP Server initialized
+2025-10-14 11:50:05,536 [INFO] Lab mode: STANDALONE
+2025-10-14 11:50:05,537 [INFO] PVE nodes: 3
+2025-10-14 11:50:05,537 [INFO] PBS nodes: 1
+🌐 Proxmox MCP HTTP Server started
+📡 WebSocket endpoint: ws://0.0.0.0:8888/ws
+🔗 HTTP endpoint: http://0.0.0.0:8888/mcp
+🏥 Health check: http://0.0.0.0:8888/health
+
+🔧 N8N MCP CLIENT CONFIGURATION OPTIONS:
+   Option 1 - WebSocket:
+   Connection Type: websocket
+   Endpoint: ws://0.0.0.0:8888/ws
+
+   Option 2 - HTTP:
+   Connection Type: http
+   Endpoint: http://0.0.0.0:8888/mcp
+
+✅ Server ready for connections
+2025-10-14 11:50:16,314 [INFO] HTTP MCP request from 127.0.0.1: tools/list
+2025-10-14 11:50:16,314 [INFO] 127.0.0.1 [14/Oct/2025:10:50:16 -0600] "POST /mcp HTTP/1.1" 200 2155 "-" "curl/7.81.0"
+2025-10-14 11:50:37,339 [INFO] HTTP MCP request from 127.0.0.1: tools/list
+2025-10-14 11:50:37,339 [INFO] 127.0.0.1 [14/Oct/2025:10:50:37 -0600] "POST /mcp HTTP/1.1" 200 2155 "-" "curl/7.81.0"
+🧠 Proxmox MCP Server - Production Environment
+=======================================================
+📊 Configuration: STANDALONE mode
+🖥️  PVE Nodes: 3
+💾 PBS Nodes: 1
+🔔 Enabled: Gotify, Discord, Event Listeners
+
+🌐 MCP HTTP SERVER MODE - Remote n8n Integration
+=======================================================
+
+📋 N8N MCP CLIENT CONFIGURATION:
+   Connection Type: websocket
+   Endpoint: ws://0.0.0.0:8888/ws
+   (Use your server's IP address instead of 0.0.0.0)
+
+🎯 Starting HTTP/WebSocket MCP Server...
+🌍 Server accessible from remote machines
+
+
+🛑 HTTP MCP Server shutdown signal received

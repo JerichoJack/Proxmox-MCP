@@ -72,9 +72,11 @@ Proxmox-MCP/
 │   │   ├── gotify_notifier.py                  # GotifyNotifier ✅ Implemented
 │   │   ├── ntfy_notifier.py                    # NtfyNotifier
 │   │   └── email_notifier.py                   # EmailNotifier (future)
-├── main.py                                     ✅ Demo Implementation with --test-connection
-├── n8n_agent_interface.py                     ✅ n8n AI Agent HTTP API
-├── n8n_workflow_proxmox_ai_agent.json         ✅ Complete n8n AI Agent Workflow
+├── main.py                                     ✅ Unified Production Entry Point
+├── mcp_server.py                              ✅ MCP Server for n8n Integration  
+├── n8n_agent_interface.py                     ✅ n8n AI Agent HTTP API (Legacy)
+├── Discord ChatBot.json                       ✅ n8n Discord ChatBot Workflow
+├── 🤖Proxmox MCP Agent Workflow - Enhanced.json ✅ Advanced n8n AI Agent Workflow
 ├── setup_n8n_agent.py                         ✅ Setup & Test Suite
 ├── .env.example                                ✅ Added
 ├── requirements.txt                            ✅ Added
@@ -96,22 +98,25 @@ Each section can be toggled to match your deployment and notification preference
 
 ---
 
-## 🏗️ Key Features (Progress So Far)
+## 🏗️ Key Features
 
-- **Full PVE/PBS API control** – ✅ API testing implemented with `--test-connection`
-- **Real-time event handling** – ✅ Email, WebSocket & Gotify ingestion implemented
-- **Clustered & standalone node support** – ✅ WebSocket and dispatcher updated for clusters
-- **Agent notifications and automation** – ✅ Dispatcher & Gotify notifier implemented
-- **Pluggable architecture** – ✅ Easy to extend with custom notifiers or handlers
-- **Connection validation** – ✅ Comprehensive testing via `python main.py --test-connection`
+- **Unified Production Environment** – ✅ Single entry point with `main.py`
+- **Comprehensive Testing** – ✅ Full connectivity validation with `--test-connection`
+- **MCP Protocol Integration** – ✅ Production-ready MCP server for n8n
+- **AI Agent Workflows** – ✅ Complete n8n examples for intelligent automation
+- **Multi-Node Support** – ✅ Standalone, clustered, and mixed Proxmox environments
+- **Real-time Event Processing** – ✅ WebSocket, Email, Syslog, and API event ingestion
+- **Smart Notifications** – ✅ Discord, Gotify integration with intelligent routing
+- **Natural Language Interface** – ✅ Discord ChatBot for conversational Proxmox management
+- **Approval Workflows** – ✅ AI agents with human oversight for critical operations
 
 ---
 
 ## 🚀 Getting Started
 
-### Quick Start (Recommended)
+### Quick Start (Production Environment)
 
-```powershell
+```bash
 # Clone repository and setup
 git clone <repository-url>
 cd Proxmox-MCP
@@ -121,50 +126,187 @@ pip install -r requirements.txt
 cp .env.example .env
 # Edit .env with your Proxmox credentials and preferences
 
-# Test connectivity
-python core/manager.py --test
+# Test all connections
+python3 main.py --test-connection
 
-# Run the server
-python core/manager.py
+# Start MCP server for n8n integration
+python3 main.py --mcp-server
 ```
 
-### Usage Options
+### Production Usage
 
-**Production Server (Recommended):**
-```powershell
-# Full lifecycle management with graceful shutdown
-python core/manager.py
-```
+The unified `main.py` serves as the single entry point with two primary modes:
 
-**Test Connectivity:**
-```powershell
-# Test all nodes and I/O modules
-python core/manager.py --test
-python main.py --test-connection  # Legacy compatibility
+**🔍 Connection Testing:**
+```bash
+python3 main.py --test-connection
 ```
+- Tests all configured PVE/PBS node connectivity
+- Validates input/output module functionality
+- Verifies MCP server protocol initialization
+- Provides comprehensive system health check
 
-**n8n AI Agent Integration:**
-```powershell
-# HTTP API for n8n workflows
-python n8n_agent_interface.py
+**🔌 MCP Server Mode:**
+```bash
+python3 main.py --mcp-server
 ```
-
-**Legacy Mode:**
-```powershell
-# Original implementation (maintained for compatibility)
-python main.py
-```
+- Starts production MCP server for n8n integration
+- Uses stdio interface for MCP Client connections
+- Provides real-time Proxmox infrastructure management
+- Ready for AI agent workflows
 
 ---
 
-## 🧩 Example Use Cases
+## � n8n AI Agent Integration
+
+This project includes complete n8n workflow examples for intelligent Proxmox management:
+
+### 🎯 Workflow Examples
+
+**1. Discord ChatBot (`Discord ChatBot.json`)**
+- Natural language interface for Proxmox queries
+- Processes user commands via Discord
+- Routes complex requests to specialized AI agents
+- Supports both simple queries and complex infrastructure management
+
+**2. Proxmox MCP Agent (`🤖Proxmox MCP Agent Workflow - Enhanced.json`)**
+- Advanced AI agent for Proxmox infrastructure management
+- Uses MCP tools for real-time system monitoring
+- Intelligent decision making with user approval workflows
+- Comprehensive status reporting and automated remediation
+
+### 🔄 Integration Flow
+
+```plaintext
+Discord User → ChatBot Agent → Proxmox MCP Agent → MCP Server → Proxmox Infrastructure
+     ↑                                ↓
+     └─────────── Response & Status Updates ──────────┘
+```
+
+### 📋 n8n MCP Client Configuration
+
+There are two ways to connect n8n to your Proxmox MCP Server:
+
+#### Option 1: Local Installation (stdio)
+
+If you can install the MCP server on the same machine as n8n:
+
+```bash
+# On your n8n server
+git clone <your-repo-url> /opt/Proxmox-MCP
+cd /opt/Proxmox-MCP
+pip install -r requirements.txt
+cp .env.example .env
+# Edit .env with your Proxmox server credentials
+
+# Start stdio server
+python3 main.py --mcp-server
+```
+
+Configure your MCP Client node:
+```json
+{
+  "parameters": {
+    "options": {
+      "connection": {
+        "type": "stdio",
+        "command": "python3",
+        "args": ["/opt/Proxmox-MCP/mcp_server.py"],
+        "workingDirectory": "/opt/Proxmox-MCP"
+      }
+    }
+  }
+}
+```
+
+#### Option 2: Remote Server (WebSocket) ⭐ **Recommended for separate servers**
+
+If your n8n and Proxmox MCP server are on different machines:
+
+```bash
+# On your Proxmox MCP server machine
+git clone <your-repo-url> /root/Proxmox-MCP
+cd /root/Proxmox-MCP
+pip install -r requirements.txt
+cp .env.example .env
+# Edit .env with your Proxmox server credentials
+
+# Start HTTP/WebSocket server
+python3 main.py --mcp-http --host 0.0.0.0 --port 8000
+```
+
+Configure your MCP Client node:
+```json
+{
+  "parameters": {
+    "options": {
+      "connection": {
+        "type": "websocket",
+        "endpoint": "ws://YOUR-SERVER-IP:8000/ws"
+      }
+    }
+  }
+}
+```
+
+**Replace `YOUR-SERVER-IP` with the actual IP address of your MCP server machine.**
+
+#### Connection Examples
+
+**For your current setup (n8n on separate server):**
+```json
+{
+  "nodes": [
+    {
+      "parameters": {
+        "options": {
+          "connection": {
+            "type": "websocket",
+            "endpoint": "ws://192.168.1.100:8000/ws"
+          }
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.mcpClientTool",
+      "typeVersion": 1.2,
+      "position": [1200, 592],
+      "id": "bcc9b8b5-9b94-4f73-81de-ea00dd4c9ba6",
+      "name": "MCP Client"
+    }
+  ]
+}
+```
+
+#### Server Management Commands
+
+**Start stdio server (local n8n):**
+```bash
+python3 main.py --mcp-server
+```
+
+**Start HTTP server (remote n8n):**
+```bash
+python3 main.py --mcp-http --host 0.0.0.0 --port 8000
+```
+
+**Test connectivity:**
+```bash
+python3 main.py --test-connection
+```
+
+**Health check (HTTP server):**
+```bash
+curl http://YOUR-SERVER-IP:8000/health
+```
+
+## �🧩 Example Use Cases
 
 - **AI-Powered Automation**: n8n AI Agent analyzes events and takes intelligent actions
 - **Smart Notifications**: AI-enhanced notifications with context and severity analysis
-- **Automate backups** via PBS and report results in real time.
-- **Monitor VM migrations**, restarts, or failed tasks instantly.
-- **Detect and fix** node or disk errors before they escalate.
-- **Forward structured** Proxmox events to AI agents for analysis and response.
+- **Natural Language Interface**: Ask questions like "What's the status of my VMs?" via Discord
+- **Automated Infrastructure Management**: AI agents perform routine maintenance with approval workflows
+- **Real-time Monitoring**: Continuous monitoring with intelligent alerting and remediation
+- **Event-Driven Responses**: Automatic responses to Proxmox events (VM failures, backup issues, etc.)
+- **Cross-Platform Integration**: Connect Proxmox to Discord, Gotify, and other notification systems
 
 ---
 
@@ -335,16 +477,42 @@ python main.py
 
 ---
 
-## 🧠 Future Steps / Remaining Work for Demo
+## 🛠️ Troubleshooting
 
-1. **Finish MCP Agent** – receives events and triggers notifications or remediation scripts.
-2. **Finalize Event Listeners** – make Email & WebSocket listeners fully async, handle clustered node events correctly.
-3. **Complete Gotify/Discord/Ntfy notifiers** – fully async, include error handling.
-4. **Manager/Command tools** – orchestrate backups, VM tasks, storage actions.
-5. **Logging & Diagnostics** – central log, optional database support.
-6. **Optional Web UI/Dashboard** – show live events, node states, and notifications.
+### Common Issues
 
-> With these steps completed, the MCP server will be a fully working demo, ingesting live events from PVE/PBS nodes and pushing them to notifiers in real time.
+**❌ Configuration file '.env' not found**
+```bash
+# Copy the example configuration
+cp .env.example .env
+# Edit with your Proxmox credentials
+nano .env
+```
+
+**❌ MCP Server connection issues in n8n**
+- Ensure working directory is set to the Proxmox-MCP folder
+- Use absolute paths for the Python command
+- Verify python3 is in your PATH: `which python3`
+- Test manually: `python3 mcp_server.py` (should show connection info)
+
+**❌ Some connectivity tests failed**
+- Check network connectivity to Proxmox nodes
+- Verify API credentials in `.env`
+- Ensure firewall allows connections to required ports
+- Check Discord/Gotify tokens and webhook URLs
+
+**❌ n8n workflow execution errors**
+- Ensure MCP server is running: `python3 main.py --mcp-server`
+- Check n8n MCP Client node configuration
+- Verify channelId is being passed correctly from Discord
+- Test individual MCP tools in n8n test mode
+
+### Getting Help
+
+1. **Run diagnostics**: `python3 main.py --test-connection`
+2. **Check logs**: Look for error messages in terminal output
+3. **Validate configuration**: Review `.env` file settings
+4. **Test components individually**: Use the setup script for targeted testing
 
 ---
 

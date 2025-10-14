@@ -2,6 +2,7 @@ mcp
 proxmoxer
 requests
 aiohttp
+aiohttp-cors
 python-dotenv
 configparser
 apscheduler

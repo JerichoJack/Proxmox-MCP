@@ -1,0 +1,781 @@
+{
+  "name": "Discord ChatBot",
+  "nodes": [
+    {
+      "parameters": {
+        "model": "llama3.2:1b",
+        "options": {}
+      },
+      "id": "a1bd7bcd-d88c-4f57-8bfa-3173d2f327b9",
+      "name": "Ollama Model",
+      "type": "@n8n/n8n-nodes-langchain.lmOllama",
+      "typeVersion": 1,
+      "position": [
+        400,
+        1008
+      ],
+      "credentials": {
+        "ollamaApi": {
+          "id": "g4qsIa9ik5l18myY",
+          "name": "Ollama account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "name": "documents",
+        "topK": 3
+      },
+      "id": "52ef8294-49c0-4331-8068-dcd7c69b9b15",
+      "name": "Vector Store Tool",
+      "type": "@n8n/n8n-nodes-langchain.toolVectorStore",
+      "typeVersion": 1,
+      "position": [
+        352,
+        704
+      ],
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "model": "nomic-embed-text:latest"
+      },
+      "id": "1f4d4b7f-7d15-4db9-9f66-d41931f98d56",
+      "name": "Embeddings Ollama",
+      "type": "@n8n/n8n-nodes-langchain.embeddingsOllama",
+      "typeVersion": 1,
+      "position": [
+        176,
+        1008
+      ],
+      "credentials": {
+        "ollamaApi": {
+          "id": "g4qsIa9ik5l18myY",
+          "name": "Ollama account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "content": "## Local RAG AI Agent with Chat Interface",
+        "height": 895,
+        "width": 485,
+        "color": 4
+      },
+      "id": "55f26510-f4c7-40e1-97c0-e613115e6457",
+      "name": "Sticky Note2",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        112,
+        224
+      ]
+    },
+    {
+      "parameters": {
+        "qdrantCollection": {
+          "__rl": true,
+          "value": "documents",
+          "mode": "list",
+          "cachedResultName": "documents"
+        },
+        "options": {}
+      },
+      "id": "2a2ad34f-e90a-4c5e-ae92-0fe264a1a71c",
+      "name": "Qdrant Vector Store",
+      "type": "@n8n/n8n-nodes-langchain.vectorStoreQdrant",
+      "typeVersion": 1,
+      "position": [
+        176,
+        864
+      ],
+      "credentials": {
+        "qdrantApi": {
+          "id": "ve9DjUXiJHSc2Tty",
+          "name": "QdrantApi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $('Discord MSG to BOT').item.json.content }}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.3,
+      "position": [
+        384,
+        496
+      ],
+      "id": "84d59baf-5819-4404-80db-5485726fd720",
+      "name": "Window Buffer Memory",
+      "disabled": true
+    },
+    {
+      "parameters": {},
+      "type": "@n8n/n8n-nodes-langchain.toolCalculator",
+      "typeVersion": 1,
+      "position": [
+        720,
+        960
+      ],
+      "id": "a31b7806-ed77-409a-8a65-9b702841dd8d",
+      "name": "Calculator"
+    },
+    {
+      "parameters": {
+        "content": "## Tools (Working)\n",
+        "height": 247,
+        "width": 605,
+        "color": 6
+      },
+      "id": "fc58a660-e981-4844-9483-d5d457350984",
+      "name": "Sticky Note",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        640,
+        864
+      ]
+    },
+    {
+      "parameters": {
+        "content": "## Input\n",
+        "height": 227,
+        "width": 309,
+        "color": 5
+      },
+      "id": "82ac3515-0bd0-4446-bb5c-b3cb230e5bb6",
+      "name": "Sticky Note3",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -480,
+        224
+      ]
+    },
+    {
+      "parameters": {
+        "content": "## Outputs\n",
+        "height": 199,
+        "width": 221,
+        "color": 7
+      },
+      "id": "8b6ed0fc-9ae1-43fe-a91b-607b8ba65c42",
+      "name": "Sticky Note4",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        720,
+        224
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "6ccd6220-95e5-4352-ab64-8b029f37652d",
+              "name": "content",
+              "value": "={{ $json.content }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "97c52d18-4686-47ad-8895-74a856b4ce32",
+      "name": "Pull User Request",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -80,
+        288
+      ]
+    },
+    {
+      "parameters": {
+        "channelIds": [
+          "1346909607854870610"
+        ],
+        "pattern": "regex",
+        "value": ".*",
+        "botMention": true
+      },
+      "type": "@jjuanrivvera99/n8n-nodes-discord.discordTrigger",
+      "typeVersion": 1,
+      "position": [
+        -384,
+        288
+      ],
+      "id": "4d89a37e-5dfb-4959-a4f9-833e7a334dcb",
+      "name": "Discord MSG to BOT",
+      "webhookId": "fac5db75-cccd-4183-865b-c52e019343f6",
+      "credentials": {
+        "discordApi": {
+          "id": "zO7e3OjzgaUpNsfY",
+          "name": "Discord App account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "triggerChannel": true,
+        "content": "={{ $json.output }}",
+        "botCustomization": true,
+        "botActivity": "and Waiting...",
+        "botActivityType": 3,
+        "botStatus": "idle"
+      },
+      "type": "@jjuanrivvera99/n8n-nodes-discord.discord",
+      "typeVersion": 1,
+      "position": [
+        752,
+        288
+      ],
+      "id": "4c7a56eb-c756-4730-8311-47e3da048932",
+      "name": "Send Reply",
+      "credentials": {
+        "discordApi": {
+          "id": "zO7e3OjzgaUpNsfY",
+          "name": "Discord App account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "type": "none",
+        "botCustomization": true,
+        "botActivity": "Request, Standby...",
+        "botActivityType": 1
+      },
+      "type": "@jjuanrivvera99/n8n-nodes-discord.discord",
+      "typeVersion": 1,
+      "position": [
+        -80,
+        144
+      ],
+      "id": "bc1768f5-0340-4992-8a09-c2f054cdd003",
+      "name": "Processing Request",
+      "credentials": {
+        "discordApi": {
+          "id": "zO7e3OjzgaUpNsfY",
+          "name": "Discord App account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "content": "## Tools (Testing)\n",
+        "height": 247,
+        "width": 605
+      },
+      "id": "6643cfb2-bacf-4950-9162-34a67f1dcc86",
+      "name": "Sticky Note1",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        640,
+        592
+      ]
+    },
+    {
+      "parameters": {
+        "model": "llama3.2:3b",
+        "options": {}
+      },
+      "id": "1d8aa5cf-ad1e-48ed-9343-3832e81b241f",
+      "name": "Tool Model",
+      "type": "@n8n/n8n-nodes-langchain.lmChatOllama",
+      "typeVersion": 1,
+      "position": [
+        288,
+        608
+      ],
+      "credentials": {
+        "ollamaApi": {
+          "id": "g4qsIa9ik5l18myY",
+          "name": "Ollama account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "description": "Call this tool to perform conversation tasks that do not require any other tool functions.",
+        "workflowId": {
+          "__rl": true,
+          "value": "5yehoG1w7zXwjIp2",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/5yehoG1w7zXwjIp2",
+          "cachedResultName": "🤖Conversation Agent"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "content": "={{ $json.content }}",
+            "SubWorkflow": "={{subworkflow=true}}",
+            "channelId": "={{ $('Discord MSG to BOT').item.json.channelId }}"
+          },
+          "matchingColumns": [
+            "content"
+          ],
+          "schema": [
+            {
+              "id": "content",
+              "displayName": "content",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "SubWorkflow",
+              "displayName": "SubWorkflow",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "boolean",
+              "removed": false
+            },
+            {
+              "id": "channelId",
+              "displayName": "channelId",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.toolWorkflow",
+      "typeVersion": 2.2,
+      "position": [
+        704,
+        688
+      ],
+      "id": "cdd1c2ad-dab1-467b-9c05-a96bb34b73a7",
+      "name": "Conversation Agent"
+    },
+    {
+      "parameters": {
+        "description": "Call This Tool for anything related to Proxmox",
+        "workflowId": {
+          "__rl": true,
+          "value": "xClkKGUDEywThxP6",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/xClkKGUDEywThxP6",
+          "cachedResultName": "🤖Proxmox MCP Agent Workflow - Enhanced"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "content": "={{ $json.content }}",
+            "channelId": "={{ $('Discord MSG to BOT').item.json.channelId }}",
+            "SubWorkflow": "={{subworkflow=true}}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "content",
+              "displayName": "content",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "SubWorkflow",
+              "displayName": "SubWorkflow",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "boolean",
+              "removed": false
+            },
+            {
+              "id": "channelId",
+              "displayName": "channelId",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.toolWorkflow",
+      "typeVersion": 2.2,
+      "position": [
+        864,
+        960
+      ],
+      "id": "59f700eb-af58-4092-83a1-4bbfc9a13410",
+      "name": "Proxmox Agent"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.content }}",
+        "options": {
+          "systemMessage": "={\n  \"role\": \"system\",\n  \"name\": \"RouterAgent\",\n  \"purpose\": \"Route user messages to the correct specialized agent.\",\n  \"instructions\": {\n    \"overview\": \"You are the Main Routing Agent. Your job is to analyze the user's message and route it to the correct sub-agent. Do not answer, summarize, or write anything yourself — only decide which agent should handle the query.\",\n    \"agents\": {\n      \"researchAgent\": \"Use for factual or up-to-date questions requiring web searches.\",\n      \"conversationAgent\": \"Use for casual chat, opinions, emotional statements, or general conversation.\",\n      \"proxmoxAgent\": \"Use for anything related to Proxmox nodes, VMs, or system information.\"\n    },\n    \"routing_rules\": [\n      \"If the message is about Proxmox, use 'proxmoxAgent'.\",\n      \"If the message requires factual or current information, use 'researchAgent'.\",\n      \"If the message is conversational, ambiguous, or emotional, use 'conversationAgent'.\",\n      \"When uncertain, default to 'conversationAgent'.\"\n    ],\n    \"special_rules\": [\n      \"Some tasks may require updated info; use 'researchAgent' first, then provide results to the task agent.\",\n      \"Never send small talk or opinions to task agents.\",\n      \"Always return only the agent’s output exactly as received.\"\n    ],\n    \"output_format\": {\n      \"expected\": \"If agent output includes 'final_message', send only 'final_message' exactly as it is to the user including emojis and formatting.\",\n      \"example\": {\n        \"input\": \"Is Proxmox node Proximo online?\",\n        \"agent\": \"proxmoxAgent\",\n        \"agent_output\": [\n          {\n            \"final_message\": \"✅ Node **pve-test** is healthy.\\n🖥️ CPU Load: 2.8%\\nMemory: 37.7 GB / 125.8 GB\\nUptime: 95 hrs\\n\"\n          }\n        ],\n        \"output\": \"✅ Node **pve-test** is healthy.\\n🖥️ CPU Load: 2.8%\\nMemory: 37.7 GB / 125.8 GB\\nUptime: 95 hrs\\n\"\n      }\n    },\n    \"examples\": [\n      { \"input\": \"What is the population of Canada?\", \"route_to\": \"researchAgent\" },\n      { \"input\": \"What do you think about AI art?\", \"route_to\": \"conversationAgent\" },\n      { \"input\": \"Tell me something random.\", \"route_to\": \"conversationAgent\" },\n      { \"input\": \"Is Proxmox node Proximo online?\", \"route_to\": \"proxmoxAgent\" }\n    ],\n    \"reminders\": [\n      \"Focus only on routing; never generate content yourself.\",\n      \"If unsure, route to 'conversationAgent'.\",\n      \"Use current system time when relevant: {{ $now }}\",\n      \"content\" \"{{ $json.content }}\"\n    ]\n  }\n}"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.7,
+      "position": [
+        288,
+        288
+      ],
+      "id": "31ca37d1-50f2-439a-85d5-6272366d086f",
+      "name": "RouterAgent"
+    },
+    {
+      "parameters": {
+        "description": "Call this tool to perform research tasks that do not require any other tool functions.",
+        "workflowId": {
+          "__rl": true,
+          "value": "tqZM7c9yimUSUrPw",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/tqZM7c9yimUSUrPw",
+          "cachedResultName": "🤖Research Agent"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "SubWorkflow": "={{subworkflow=true}}",
+            "content": "={{ $json.content }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "content",
+              "displayName": "content",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "SubWorkflow",
+              "displayName": "SubWorkflow",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "boolean",
+              "removed": false
+            },
+            {
+              "id": "channelId",
+              "displayName": "channelId",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.toolWorkflow",
+      "typeVersion": 2.2,
+      "position": [
+        1008,
+        960
+      ],
+      "id": "2b46e8b2-7808-465d-81fd-4792f58aa389",
+      "name": "Research Agent"
+    },
+    {
+      "parameters": {
+        "content": "## Test Inputs\n",
+        "height": 227,
+        "width": 581
+      },
+      "id": "99ac1751-2f64-4c54-9755-2d5f88243eb6",
+      "name": "Sticky Note5",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -480,
+        464
+      ]
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chatTrigger",
+      "typeVersion": 1.3,
+      "position": [
+        -400,
+        528
+      ],
+      "id": "50c6de44-a278-4df3-8c83-ee721a82ca40",
+      "name": "When chat message received",
+      "webhookId": "b2298e50-8987-4aea-b0d7-f1dfde7cbf85"
+    },
+    {
+      "parameters": {
+        "content": "## Prepare User Input\n",
+        "height": 355,
+        "width": 261,
+        "color": 6
+      },
+      "id": "ee17de82-fd6c-4ab5-b065-835b8955b413",
+      "name": "Sticky Note6",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -160,
+        96
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "6ccd6220-95e5-4352-ab64-8b029f37652d",
+              "name": "content",
+              "value": "={{ $json.chatInput }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "f3cc1ba7-ce99-420d-8c60-a92b80f6da28",
+      "name": "Pull Chat Request",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -80,
+        528
+      ]
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Ollama Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Vector Store Tool",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Embeddings Ollama": {
+      "ai_embedding": [
+        [
+          {
+            "node": "Qdrant Vector Store",
+            "type": "ai_embedding",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Qdrant Vector Store": {
+      "ai_vectorStore": [
+        [
+          {
+            "node": "Vector Store Tool",
+            "type": "ai_vectorStore",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Vector Store Tool": {
+      "ai_tool": [
+        [
+          {
+            "node": "RouterAgent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Window Buffer Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "RouterAgent",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Calculator": {
+      "ai_tool": [
+        [
+          {
+            "node": "RouterAgent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Pull User Request": {
+      "main": [
+        [
+          {
+            "node": "RouterAgent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Discord MSG to BOT": {
+      "main": [
+        [
+          {
+            "node": "Processing Request",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Pull User Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Tool Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "RouterAgent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Conversation Agent": {
+      "ai_tool": [
+        [
+          {
+            "node": "RouterAgent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Proxmox Agent": {
+      "ai_tool": [
+        [
+          {
+            "node": "RouterAgent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "RouterAgent": {
+      "main": [
+        [
+          {
+            "node": "Send Reply",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Research Agent": {
+      "ai_tool": [
+        [
+          {
+            "node": "RouterAgent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "When chat message received": {
+      "main": [
+        [
+          {
+            "node": "Pull Chat Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Pull Chat Request": {
+      "main": [
+        [
+          {
+            "node": "RouterAgent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "05f2da39-6ea6-42f1-b506-e71627307ed7",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "74f7b7e43879ad5e066683ec12b69cba1be8c55b373082f88b61cf23c5b39233"
+  },
+  "id": "wvLZOjlGFWwoAGFo",
+  "tags": [
+    {
+      "createdAt": "2025-04-08T13:09:52.844Z",
+      "updatedAt": "2025-04-08T13:09:52.844Z",
+      "id": "1vk4uJxK0P4DZPmW",
+      "name": "Assistant"
+    },
+    {
+      "createdAt": "2025-04-08T13:24:53.282Z",
+      "updatedAt": "2025-04-08T13:24:53.282Z",
+      "id": "CVsjGmJ7crVKdjEs",
+      "name": "Chat-BOT"
+    },
+    {
+      "createdAt": "2025-04-08T13:24:53.289Z",
+      "updatedAt": "2025-04-08T13:24:53.289Z",
+      "id": "tRjbcE4KJ7bWsZvA",
+      "name": "Discord"
+    }
+  ]
+}
