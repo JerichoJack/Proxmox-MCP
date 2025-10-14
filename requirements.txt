@@ -7,3 +7,6 @@ configparser
 apscheduler
 gotify
 websockets
+fastapi
+uvicorn
+pydantic

@@ -22,6 +22,9 @@ This roadmap tracks progress on the MCP Server for Proxmox project, including ev
 * [x] `main.py` demo implementation with --test-connection feature
 * [x] `core/api_tester.py` comprehensive node connectivity testing
 * [x] Gotify input/output integration and testing
+* [x] `n8n_agent_interface.py` HTTP API for n8n integration
+* [x] `n8n_workflow_proxmox_ai_agent.json` complete AI agent workflow
+* [x] `setup_n8n_agent.py` setup and testing suite
 * [x] Roadmap & demo integration plan drafted
 
 ---
@@ -48,7 +51,8 @@ The **MCP Server Demo** is now functional with core features implemented:
 3. **Event Listeners** - WebSocket, Email, Gotify, Syslog, and Discord input streams
 4. **Connection Testing** - `--test-connection` validates all PVE/PBS nodes and I/O modules
 5. **Gotify Integration** - Full bidirectional support (input stream + output notifications)
-6. **Discord Integration** - Full bidirectional support (webhook monitoring + rich embed notifications)
+6. **Discord Integration** - Full bidirectional support (webhook monitoring + rich embed notifications)  
+7. **n8n AI Agent Integration** - Complete AI-powered automation with OpenAI analysis
 6. **Graceful Shutdown** - Proper SIGINT/SIGTERM handling
 7. **Clustered Node Support** - Both PVE & PBS cluster configurations
 
@@ -63,15 +67,17 @@ The **MCP Server Demo** is now functional with core features implemented:
 ## 🚀 Next Steps / Future Enhancements
 
 **Immediate Priorities:**
-7. **MCP Agent Integration** - Event-driven automated actions and remediation
 8. **Additional Notifiers** - Complete Ntfy and Email output modules
 9. **Enhanced Logging** - Structured logging with optional database storage
+10. **Production Hardening** - Authentication, rate limiting, error handling
 
 **Future Features:**
-10. **Web UI Dashboard** - Live event monitoring and system status
-11. **Advanced Event Filtering** - Rule-based event processing and routing  
-12. **Backup Automation** - PBS integration for automated backup workflows
-13. **Performance Monitoring** - Resource usage and event throughput metrics
+11. **Web UI Dashboard** - Live event monitoring and system status
+12. **Advanced Event Filtering** - Rule-based event processing and routing  
+13. **Backup Automation** - PBS integration for automated backup workflows
+14. **Performance Monitoring** - Resource usage and event throughput metrics
+15. **Multi-Tenant Support** - Support multiple Proxmox clusters
+16. **Machine Learning** - Predictive analytics and failure prevention
 
 ---
 

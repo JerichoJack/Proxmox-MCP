@@ -73,6 +73,9 @@ Proxmox-MCP/
 │   │   ├── ntfy_notifier.py                    # NtfyNotifier
 │   │   └── email_notifier.py                   # EmailNotifier (future)
 ├── main.py                                     ✅ Demo Implementation with --test-connection
+├── n8n_agent_interface.py                     ✅ n8n AI Agent HTTP API
+├── n8n_workflow_proxmox_ai_agent.json         ✅ Complete n8n AI Agent Workflow
+├── setup_n8n_agent.py                         ✅ Setup & Test Suite
 ├── .env.example                                ✅ Added
 ├── requirements.txt                            ✅ Added
 └── README.md                                   ✅ Updated
@@ -106,10 +109,12 @@ Each section can be toggled to match your deployment and notification preference
 
 ## 🧩 Example Use Cases
 
-- Automate backups via PBS and report results in real time.
-- Monitor VM migrations, restarts, or failed tasks instantly.
-- Detect and fix node or disk errors before they escalate.
-- Forward structured Proxmox events to AI agents for analysis.
+- **AI-Powered Automation**: n8n AI Agent analyzes events and takes intelligent actions
+- **Smart Notifications**: AI-enhanced notifications with context and severity analysis
+- **Automate backups** via PBS and report results in real time.
+- **Monitor VM migrations**, restarts, or failed tasks instantly.
+- **Detect and fix** node or disk errors before they escalate.
+- **Forward structured** Proxmox events to AI agents for analysis and response.
 
 ---
 
