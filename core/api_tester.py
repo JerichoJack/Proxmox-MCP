@@ -2,7 +2,7 @@
 import asyncio
 import requests
 from core.utils import setup_logger
-from core.proxmox_api import ProxmoxAPIClient, ProxmoxAPIManager
+from core.proxmox_api import ProxmoxAPIManager
 
 logger = setup_logger()
 
