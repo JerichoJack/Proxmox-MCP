@@ -1,0 +1,50 @@
+{
+  "name": "Minimal MCP Test Workflow",
+  "nodes": [
+    {
+      "parameters": {
+        "endpointUrl": "http://192.168.4.14:8888/mcp",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.mcpClientTool",
+      "typeVersion": 1.2,
+      "position": [400, 300],
+      "id": "mcp-test-1",
+      "name": "MCP Test"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "Test connection to Proxmox MCP server",
+        "options": {
+          "systemMessage": "You are a test agent. Use the MCP tools to check node status. Call get_node_status with node_type 'all'."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2.2,
+      "position": [200, 300],
+      "id": "test-agent",
+      "name": "Test Agent"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [20, 300],
+      "id": "manual-trigger",
+      "name": "Manual Trigger"
+    }
+  ],
+  "connections": {
+    "Manual Trigger": {
+      "main": [[{"node": "Test Agent", "type": "main", "index": 0}]]
+    },
+    "MCP Test": {
+      "ai_tool": [[{"node": "Test Agent", "type": "ai_tool", "index": 0}]]
+    }
+  },
+  "pinData": {},
+  "meta": {
+    "templateCredsSetupCompleted": true
+  }
+}

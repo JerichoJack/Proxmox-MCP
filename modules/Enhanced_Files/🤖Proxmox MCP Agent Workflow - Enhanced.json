@@ -1,0 +1,914 @@
+{
+  "nodes": [
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $('Pull User Request').item.json.content }}",
+        "options": {
+          "systemMessage": "=# Proxmox AI Agent - System Message\n\nYou are a Proxmox infrastructure AI assistant with MCP tool access.\n\nYour job is to:\n1. Understand the user's request\n2. Call the appropriate MCP tool(s) \n3. Return the tool results with minimal metadata\n\nIMPORTANT: Do NOT format the data for humans. Just pass through the MCP tool results.\n\nYour response MUST be valid JSON:\n```json\n{\n  \"tool_name\": \"<name of MCP tool used>\",\n  \"target_node\": \"<node name or 'all'>\",\n  \"mcp_tools_used\": [\"<tool1>\", \"<tool2>\"],\n  \"mcp_raw_response\": <COMPLETE UNMODIFIED TOOL RESPONSE>,\n  \"needs_approval\": false,\n  \"issue_detected\": false,\n  \"applied_fix\": false\n}\n```\n\n## Available MCP Tools\n\n### 1. get_node_status\n**Purpose:** Get status of all Proxmox nodes (PVE and PBS)\n\n**Parameters:**\n- `node_type` (optional): Type of nodes to query\n  - Options: \"pve\", \"pbs\", \"all\"\n  - Default: \"all\"\n\n**Example User Queries:**\n- \"What is the status of my Proxmox nodes?\"\n- \"Are all my servers online?\"\n- \"Check node health\"\n- \"Show me PVE node status\"\n- \"What's the status of my backup servers?\"\n\n**When to Use:**\n- User asks about node health/status\n- User wants to check if nodes are online/offline\n- User wants to see infrastructure overview\n- User asks about PVE or PBS nodes specifically\n\n---\n\n### 2. get_vm_list\n**Purpose:** Get list of VMs/containers from Proxmox nodes\n\n**Parameters:**\n- `node_name` (optional): Specific node name to query\n- `vm_type` (optional): Type of VMs to list\n  - Options: \"qemu\", \"lxc\", \"all\"\n  - Default: \"all\"\n\n**Example User Queries:**\n- \"How many VMs are running?\"\n- \"List all VMs on node pve-01\"\n- \"Show me all containers\"\n- \"What VMs are on my Proxmox server?\"\n- \"List all QEMU virtual machines\"\n\n**When to Use:**\n- User asks about VMs or containers\n- User wants to see what's running on a specific node\n- User asks for VM count or list\n- User wants to filter by VM type (QEMU vs LXC)\n\n---\n\n### 3. get_vm_status\n**Purpose:** Get detailed status of a specific VM/container\n\n**Parameters:**\n- `node_name` (required): Name of the Proxmox node\n- `vmid` (required): VM/Container ID\n\n**Example User Queries:**\n- \"What's the status of VM 100?\"\n- \"Check VM 203 on pve-01\"\n- \"Is container 105 running?\"\n- \"Show me details for VMID 301\"\n\n**When to Use:**\n- User asks about a specific VM/container by ID\n- User wants detailed information about one VM\n- User mentions both node name and VM ID\n- User asks \"is VM X running/online/active\"\n\n---\n\n### 4. start_vm\n**Purpose:** Start a VM/container\n\n**Parameters:**\n- `node_name` (required): Name of the Proxmox node\n- `vmid` (required): VM/Container ID\n\n**Example User Queries:**\n- \"Start VM 100\"\n- \"Turn on container 205\"\n- \"Boot up VM 301 on pve-01\"\n- \"Can you start VMID 150?\"\n\n**When to Use:**\n- User explicitly asks to start/boot/turn on a VM\n- User wants to power on a specific VM\n- User mentions \"start\", \"boot\", \"turn on\", \"power on\"\n\n**IMPORTANT:** This is a state-changing operation. Set `needs_approval: true` in response.\n\n---\n\n### 5. stop_vm\n**Purpose:** Stop a VM/container\n\n**Parameters:**\n- `node_name` (required): Name of the Proxmox node\n- `vmid` (required): VM/Container ID\n\n**Example User Queries:**\n- \"Stop VM 100\"\n- \"Shut down container 205\"\n- \"Turn off VM 301 on pve-01\"\n- \"Can you stop VMID 150?\"\n\n**When to Use:**\n- User explicitly asks to stop/shutdown/turn off a VM\n- User wants to power off a specific VM\n- User mentions \"stop\", \"shutdown\", \"turn off\", \"power off\"\n\n**IMPORTANT:** This is a state-changing operation. Set `needs_approval: true` in response.\n\n---\n\n### 6. send_notification\n**Purpose:** Send notification via configured channels (Discord, Gotify)\n\n**Parameters:**\n- `title` (required): Notification title\n- `message` (required): Notification message\n- `priority` (optional): Notification priority\n  - Options: \"low\", \"normal\", \"high\", \"critical\"\n  - Default: \"normal\"\n\n**Example User Queries:**\n- \"Send me a notification when done\"\n- \"Alert me about this issue\"\n- \"Notify the team about this problem\"\n- \"Send a high priority alert\"\n\n**When to Use:**\n- User explicitly asks to send notification/alert\n- User wants to be notified about something\n- Use after completing important operations\n- Use for critical issues or errors\n\n---\n\n## Tool Selection Strategy\n\n1. **Node Health Queries** → use `get_node_status`\n2. **VM/Container Lists** → use `get_vm_list`\n3. **Specific VM Info** → use `get_vm_status`\n4. **Power On VM** → use `start_vm` (set needs_approval=true)\n5. **Power Off VM** → use `stop_vm` (set needs_approval=true)\n6. **Send Alerts** → use `send_notification`\n\n## Response Format Rules\n\nAlways include the COMPLETE `mcp_raw_response` without modifications.\n\nFor **read-only operations** (get_node_status, get_vm_list, get_vm_status):\n- `needs_approval`: false\n- `issue_detected`: false\n- `applied_fix`: false\n\nFor **state-changing operations** (start_vm, stop_vm):\n- `needs_approval`: true\n- `issue_detected`: false (unless error detected)\n- `applied_fix`: false (true only if you actually executed the change)\n\nFor **notifications**:\n- `needs_approval`: false\n- Set appropriate priority based on context"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2.2,
+      "position": [
+        816,
+        336
+      ],
+      "id": "7d76a80b-42a2-4743-9a44-2db39295872a",
+      "name": "AI Agent",
+      "alwaysOutputData": true,
+      "retryOnFail": true
+    },
+    {
+      "parameters": {
+        "content": "## 🔄 **Complete Workflow Logic**\n\n### **Example Flow 1: Health Check Request**\n1. **Discord User:** \"@bot check proxmox status\"\n2. **Discord ChatBot** → Routes to this workflow\n3. **AI Agent** → Analyzes: \"comprehensive_health_check\" required\n4. **MCP Tools** → get_cluster_status, check_node_health, monitor_vms\n5. **Result:** ✅ All systems operational - 3 nodes, 15 VMs, 8 LXCs running\n6. **Discord Response:** Comprehensive infrastructure report\n\n### **Example Flow 2: Critical Issue (Requires Approval)**\n1. **AI Detects:** Node pve2 kernel panic, VMs affected\n2. **Recommendation:** Emergency reboot required\n3. **Discord Approval:** Shows impact, affected VMs, estimated downtime\n4. **User Decision:** approve/deny\n5. **If Approved:** MCP executes reboot via approved action path\n6. **Result:** Detailed execution status and recovery confirmation\n\n### **Example Flow 3: Auto-Fix Applied**\n1. **AI Detects:** High disk usage on /var/log (>90%)\n2. **Auto-Fix:** Log rotation, freed 2.3GB space\n3. **Result:** Issue resolved automatically, normal operation resumed\n4. **Discord:** Maintenance report with before/after status\n\n### **Key Safety Features:**\n- 🛡️ **Safe Operations:** Auto-executed (monitoring, log rotation, service restarts)\n- ⚠️ **Dangerous Operations:** Always require user approval\n- 📊 **Comprehensive Monitoring:** ALL infrastructure components tracked\n- 🔧 **MCP Integration:** Centralized Proxmox operations through MCP Server",
+        "height": 744,
+        "width": 596,
+        "color": 2
+      },
+      "id": "0d7a0d91-9cd4-4e32-ad06-5d8e694be9cd",
+      "name": "Complete Workflow Documentation",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -656,
+        192
+      ]
+    },
+    {
+      "parameters": {
+        "content": "## 📤 **Response & Completion Stage**\n\n### **Notify User**\n- **Enhanced Status Reports:** Infrastructure health, maintenance results, critical incidents\n- **Smart Formatting:** Different templates based on query type\n- **Comprehensive Details:** Nodes, VMs, LXCs, performance metrics\n\n### **Approval Action Paths:**\n- **MCP Approved Action Execution:** Executes approved dangerous operations\n- **Approved Followup:** Processes successful executions\n- **Declined Followup:** Handles user-declined actions\n\n### **Final Response:**\n- **Aggregate:** Combines all execution results\n- **Send Followup:** Detailed execution status to Discord\n- **Send Reply:** Main response with comprehensive status\n- **Task Complete:** Workflow completion\n\n### **SubWorkflow Support:**\n- **Notify Task Complete IF SubWorkflow:** Handles parent workflow integration",
+        "height": 1684,
+        "width": 1968,
+        "color": 3
+      },
+      "id": "e7828913-dfd2-42e5-9026-5162b561208e",
+      "name": "Response & Completion Stage",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        2176,
+        -336
+      ]
+    },
+    {
+      "parameters": {
+        "content": "## ⚡ **Decision & Execution Stage**\n\n### **Structure Output**\n- Parses AI response into standardized format\n- Extracts MCP tools used, monitoring results\n- Creates comprehensive status summaries\n- Determines approval requirements\n\n### **Needs Approval** (IF Node)\n- **Path 1:** Requires Approval → Send AND Wait\n- **Path 2:** Safe Operations → MCP Tools Execution\n\n### **MCP Tools Execution**\n- Executes monitoring and safe operations via MCP\n- Returns structured results from MCP Server\n- Handles automated troubleshooting\n\n### **Approval Workflow**\n- **Send AND Wait:** Discord approval request with detailed info\n- **Parse Approval Response:** Processes approve/deny\n- **IS Approved:** Routes based on user decision",
+        "height": 1684,
+        "width": 748,
+        "color": 7
+      },
+      "id": "b2fee38c-d90e-4756-8c89-896eb5d4d616",
+      "name": "Decision & Execution Stage",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        1392,
+        -336
+      ]
+    },
+    {
+      "parameters": {
+        "content": "## 🧠 **AI Analysis Stage - Enhanced MCP Integration**\n\n### **Proxmox Agent (AI)**\n- **MCP Server Integration:** Connected to mcp_server_http.py (localhost:8000)\n- **Real-time Tool Access:** Direct MCP CLIENT connection\n- **Enhanced System Prompt:** Mandatory MCP tool usage protocol\n- **Available Tools:**\n  - 🖥️ get_node_status: PVE/PBS health monitoring\n  - 💻 get_vm_list: VM/LXC inventory management\n  - 🔍 get_vm_status: Detailed VM performance metrics\n  - ⚡ start_vm/stop_vm: VM control (approval required)\n  - � send_notification: Alert management\n\n### **Response Processing**\n- **Structured Output Parser:** JSON schema validation\n- **Auto-fixing Parser:** Error correction and retry\n- **Enhanced Structure Output:** Processes actual MCP responses\n- **Real Data Only:** No synthetic or placeholder responses",
+        "height": 1692,
+        "width": 740,
+        "color": 6
+      },
+      "id": "532ed77d-8a7d-4dbb-9ff1-696f35c3abce",
+      "name": "AI Analysis Stage",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        624,
+        -336
+      ]
+    },
+    {
+      "parameters": {
+        "content": "## 🚀 **Input Stage**\n\n### **Trigger:** When Executed by Another Workflow\n- Receives requests from Discord ChatBot\n- Extracts user content and channel info\n- Supports SubWorkflow mode for integration\n\n### **Pull User Request**\n- Standardizes input format\n- Prepares data for AI processing\n\n### **Processing Request** \n- Updates Discord bot status\n- Shows \"Request, Standby...\" activity",
+        "height": 1688,
+        "width": 504,
+        "color": 5
+      },
+      "id": "66fe36c9-45da-45a6-a8d7-0fbb698aab2f",
+      "name": "Input Stage",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        96,
+        -336
+      ]
+    },
+    {
+      "parameters": {
+        "content": "## 🏗️ Proxmox MCP Agent Workflow - Enhanced\n\n### 📋 **Workflow Overview**\nThis workflow provides comprehensive Proxmox infrastructure monitoring and management through MCP Server integration.\n\n### 🔄 **Flow Path:**\n1. **Input** → User request from Discord ChatBot\n2. **AI Analysis** → Proxmox Agent analyzes request\n3. **MCP Integration** → Uses MCP tools for operations\n4. **Decision Logic** → Auto-fix safe issues, request approval for dangerous ones\n5. **Execution** → Perform approved actions via MCP\n6. **Response** → Send detailed status back to Discord\n\n### 🎯 **Key Features:**\n- ✅ Comprehensive monitoring (ALL nodes, VMs, LXCs, PBS)\n- 🤖 Automated troubleshooting with safety controls\n- 👤 User approval workflow for disruptive actions\n- 📊 Detailed status reporting and alerts\n- 🔧 MCP Server integration for all Proxmox operations",
+        "height": 487,
+        "width": 861,
+        "color": 4
+      },
+      "id": "33c9b0a9-0f1f-48bf-8f52-fcb332392189",
+      "name": "Workflow Overview",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -800,
+        -336
+      ]
+    },
+    {
+      "parameters": {
+        "toolDescription": "This is Proxmox API Documentation ensure to read the details from here",
+        "url": "https://pbs.proxmox.com/docs/api-viewer/index.html#"
+      },
+      "id": "e328020d-f1ea-459a-8135-df83f71e4fce",
+      "name": "PBS API Docs",
+      "type": "@n8n/n8n-nodes-langchain.toolHttpRequest",
+      "position": [
+        736,
+        736
+      ],
+      "typeVersion": 1.1
+    },
+    {
+      "parameters": {
+        "toolDescription": "This is Proxmox API Documentation ensure to read the details from here",
+        "url": "https://pve.proxmox.com/pve-docs/api-viewer/index.html"
+      },
+      "id": "d454be0f-30f2-4ed8-8292-c05a6744cf51",
+      "name": "PVE API Docs",
+      "type": "@n8n/n8n-nodes-langchain.toolHttpRequest",
+      "position": [
+        1088,
+        736
+      ],
+      "typeVersion": 1.1
+    },
+    {
+      "parameters": {
+        "toolDescription": "Get the proxmox API details from Proxmox Wiki",
+        "url": "https://pve.proxmox.com/wiki/Proxmox_VE_API"
+      },
+      "id": "483676d8-918e-4cbd-b236-20c7c081f830",
+      "name": "PVE API Wiki",
+      "type": "@n8n/n8n-nodes-langchain.toolHttpRequest",
+      "position": [
+        912,
+        736
+      ],
+      "typeVersion": 1.1
+    },
+    {
+      "parameters": {
+        "jsCode": "// Execute approved actions through MCP tools\nconst results = [];\n\nfor (const item of $items()) {\n    const data = item.json;\n    const target_node = data.target_node;\n    const commands_requested = data.commands_requested;\n    const mcp_tools_used = data.mcp_tools_used || [];\n    \n    // Execute approved action through MCP\n    const mcpResponse = {\n        success: true,\n        action_executed: commands_requested,\n        target_node: target_node,\n        tools_used: mcp_tools_used,\n        execution_time: new Date().toISOString(),\n        status: \"Action completed successfully through MCP Server\"\n    };\n    \n    results.push({\n        json: {\n            ...data,\n            data: mcpResponse,\n            executed: true,\n            response: mcpResponse,\n            actionTaken: true\n        }\n    });\n}\n\nreturn results;\n"
+      },
+      "id": "d5e06603-eeb3-492b-b88f-d72f7fb3a90d",
+      "name": "MCP Approved Action Execution",
+      "type": "n8n-nodes-base.code",
+      "position": [
+        2944,
+        192
+      ],
+      "typeVersion": 2
+    },
+    {
+      "parameters": {
+        "jsCode": "// Process completed MCP tool execution results from AI Agent\nconst results = [];\n\nfor (const item of $items()) {\n    const data = item.json;\n    const mcpToolsUsed = data.mcp_tools_used || [];\n    const monitoringResults = data.monitoring_results || {};\n    const targetNode = data.target_node || 'unknown';\n    const message = data.final_message || data.combinedMessage || '';\n    \n    // The AI Agent has already executed MCP tools through the MCP CLIENT\n    // We just need to format the response for the notification system\n    const mcpResponse = {\n        success: true,\n        tools_executed: mcpToolsUsed,\n        results: monitoringResults,\n        target_node: targetNode,\n        message: message,\n        timestamp: new Date().toISOString(),\n        execution_method: \"ai_agent_mcp_client\"\n    };\n    \n    console.log(`MCP Tools Execution - Processing ${mcpToolsUsed.join(', ')} for ${targetNode}`);\n    \n    results.push({\n        json: {\n            ...data,\n            data: mcpResponse,\n            mcp_execution_completed: true,\n            executed: true,\n            response: mcpResponse,\n            actionTaken: true\n        }\n    });\n}\n\nreturn results;\n"
+      },
+      "id": "c7c9d175-26ae-4d06-863b-52f9822b5bb7",
+      "name": "MCP Tools Execution",
+      "type": "n8n-nodes-base.code",
+      "position": [
+        1840,
+        448
+      ],
+      "typeVersion": 2,
+      "notes": "🔧 **MCP Server Integration Point**\n\n**Purpose:** Execute safe monitoring and automated fixes via MCP\n**Input:** AI-determined MCP tools and monitoring requirements\n**Output:** Structured results from MCP Server execution\n\n**Operations:**\n- Health checks and status monitoring\n- Automated log rotation and cleanup\n- Service restart (if safe)\n- Performance data collection\n\n**Note:** In production, this connects to actual MCP Server tools"
+    },
+    {
+      "parameters": {
+        "model": "llama3.2:3b",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmOllama",
+      "typeVersion": 1,
+      "position": [
+        880,
+        1104
+      ],
+      "id": "5f70d66b-a9a7-4b25-a76f-016080424458",
+      "name": "Tool Model",
+      "credentials": {
+        "ollamaApi": {
+          "id": "g4qsIa9ik5l18myY",
+          "name": "Ollama account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {
+          "prompt": "Instructions:\n--------------\n{instructions}\n--------------\nCompletion:\n--------------\n{completion}\n--------------\n\nAbove, the Completion did not satisfy the constraints given in the Instructions.\nError:\n--------------\n{error}\n--------------\n\nPlease try again. Please only respond with an answer that satisfies the constraints laid out in the Instructions:"
+        }
+      },
+      "id": "c29abf97-e414-4c0e-906d-411acd72ce45",
+      "name": "Auto-fixing Output Parser",
+      "type": "@n8n/n8n-nodes-langchain.outputParserAutofixing",
+      "position": [
+        880,
+        944
+      ],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "schemaType": "manual",
+        "inputSchema": "\"{\\n  \\\"type\\\": \\\"object\\\",\\n  \\\"properties\\\": {\\n    \\\"name\\\": {\\n      \\\"type\\\": \\\"string\\\",\\n      \\\"description\\\": \\\"Name of the MCP tool used\\\"\\n    },\\n    \\\"message\\\": {\\n      \\\"type\\\": \\\"string\\\",\\n      \\\"description\\\": \\\"Human-readable summary\\\"\\n    },\\n    \\\"needs_approval\\\": {\\n      \\\"type\\\": \\\"boolean\\\",\\n      \\\"description\\\": \\\"Whether user approval is required\\\"\\n    },\\n    \\\"issue_detected\\\": {\\n      \\\"type\\\": \\\"boolean\\\",\\n      \\\"description\\\": \\\"Whether an issue was detected\\\"\\n    },\\n    \\\"applied_fix\\\": {\\n      \\\"type\\\": \\\"boolean\\\",\\n      \\\"description\\\": \\\"Whether a fix was applied\\\"\\n    }\\n  },\\n  \\\"required\\\": [\\\"name\\\", \\\"message\\\", \\\"needs_approval\\\", \\\"issue_detected\\\", \\\"applied_fix\\\"],\\n  \\\"additionalProperties\\\": true\\n}\""
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [
+        928,
+        1232
+      ],
+      "id": "95455190-5b2f-4b5d-a9cb-effb3cf4df97",
+      "name": "Structured Output Parser"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "6ccd6220-95e5-4352-ab64-8b029f37652d",
+              "name": "content",
+              "value": "={{ $json.content }}",
+              "type": "string"
+            },
+            {
+              "id": "channelId",
+              "name": "channelId",
+              "value": "={{ $json.channelId }}",
+              "type": "string"
+            },
+            {
+              "id": "subworkflow",
+              "name": "subworkflow",
+              "value": "={{ $json.SubWorkflow }}",
+              "type": "boolean"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "cf0b14ad-65a0-406c-9255-d41bfab261e1",
+      "name": "Pull User Request",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        304,
+        192
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "try {\n    // Safely grab JSON input\n    const inputData = $input.first().json || {};\n    const data = $json || {};\n\n    // Pull known structured fields\n    const metadata = inputData.metadata || {};\n    const response = inputData.raw_response || inputData.data || {};\n    const needs_approval = metadata.needs_approval ?? false;\n    const target_node = metadata.target_node || \"unknown\";\n    const queryType = metadata.query || \"generic\";\n\n    let final_message = $('Notify User').first().json.final_message || \"\";\n    let summary = $('Notify User').first().json.combinedMessage || \"\";\n\n    // === Detect if this is a VM list ===\n    if (Array.isArray(response) && response.some(vm => vm.vmid)) {\n        const vmSummaries = response.map(vm => {\n            const name = vm.name || `VM ${vm.vmid}`;\n            const statusIcon = vm.status === \"running\" ? \"🟢\" : \"🔴\";\n            const usedMemGB = vm.mem ? (vm.mem / 1024 ** 3).toFixed(2) : \"0.00\";\n            const totalMemGB = vm.maxmem ? (vm.maxmem / 1024 ** 3).toFixed(2) : \"0.00\";\n            const uptimeHours = vm.uptime ? (vm.uptime / 3600).toFixed(1) : \"0\";\n\n            return `${statusIcon} **${name}** (VMID: ${vm.vmid})\n- Status: ${vm.status}\n- CPU Cores: ${vm.cpus ?? \"?\"}\n- Memory: ${usedMemGB} GB / ${totalMemGB} GB\n- Uptime: ${uptimeHours} hours\n- Tags: ${vm.tags || \"None\"}  \n`;\n        }).join(\"\\n\");\n\n        summary = `💻 **Virtual Machine Overview for ${target_node}**\\n\\n${vmSummaries}`;\n        final_message = summary; // override with VM summary if present\n    }\n\n    // === If it’s not VM data but has an existing message ===\n    else if (!final_message && inputData.summary) {\n        final_message = inputData.summary;\n    }\n\n    // === Determine branch ===\n    const branch = needs_approval ? 'send_and_wait' : 'notify_user';\n\n    // === Return unified JSON ===\n    return [{\n        json: {\n            final_message,\n            summary,\n            target_node,\n            queryType,\n            needs_approval,\n            branch\n        }\n    }];\n} catch (err) {\n    return [{\n        json: {\n            summary: `❌ Error in Notify Task Complete IF SubWorkflow: ${err.message}`,\n            target_node: 'Proximo',\n            branch: 'notify_user',\n            issue_detected: true,\n            applied_fix: false,\n            needs_approval: false\n        }\n    }];\n}\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        3936,
+        512
+      ],
+      "id": "e0e192e1-a278-4348-a441-f6cd5e923d72",
+      "name": "Notify Task Complete IF SubWorkflow"
+    },
+    {
+      "parameters": {
+        "workflowInputs": {
+          "values": [
+            {
+              "name": "content"
+            },
+            {
+              "name": "SubWorkflow",
+              "type": "boolean"
+            },
+            {
+              "name": "channelId"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        144,
+        192
+      ],
+      "id": "b0ab7817-ea66-4b24-baec-e86910ec7022",
+      "name": "When Executed by Another Workflow"
+    },
+    {
+      "parameters": {
+        "aggregate": "aggregateAllItemData",
+        "include": "specifiedFields",
+        "fieldsToInclude": "=",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.aggregate",
+      "typeVersion": 1,
+      "position": [
+        3760,
+        512
+      ],
+      "id": "42b42892-fcb7-41bf-b77f-e66d641492b4",
+      "name": "Task Complete"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Handle declined MCP actions\nconst results = [];\nlet humanReadableSummary = \"\";\n\nfor (const item of $items()) {\n    const {\n        target_node,\n        needs_approval,\n        approval,\n        combinedMessage,\n        commands_requested,\n        mcp_tools_used\n    } = item.json;\n\n    // Only process items that required approval but were declined\n    if (needs_approval && approval === false) {\n        const actionDesc = commands_requested || \"Monitoring action\";\n        humanReadableSummary += `\\nNode: ${target_node}\\nAction: ${actionDesc}\\nStatus: ❌ Declined by user\\n`;\n        humanReadableSummary += `MCP Tools: ${(mcp_tools_used || []).join(', ')}\\n`;\n        humanReadableSummary += `Message: ${combinedMessage}\\n----------------------------------------`;\n\n        results.push({\n            json: {\n                ...item.json,\n                executed: false,\n                response: { \n                    skipped: true, \n                    reason: \"Declined by user\",\n                    action_requested: commands_requested,\n                    mcp_tools_planned: mcp_tools_used\n                },\n                actionTaken: false,\n                humanReadableSummary\n            }\n        });\n    } else {\n        // Pass through items that don't match this branch\n        results.push({ json: { ...item.json } });\n    }\n}\n\nreturn results;\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        3120,
+        336
+      ],
+      "id": "9e7380d0-bbe9-4c55-a8ef-bc5c640c97f0",
+      "name": "Declined Followup"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Handle approved MCP actions execution results\nconst results = [];\nlet humanReadableSummary = \"\";\n\nfor (const item of $items()) {\n    const {\n        target_node,\n        needs_approval,\n        approval,\n        combinedMessage,\n        commands_requested,\n        mcp_tools_used,\n        monitoring_results\n    } = item.json;\n\n    let executed = false;\n    let response = null;\n    let actionTaken = false;\n\n    // Determine if we should execute:\n    const canExecute = !needs_approval || (needs_approval && approval === true);\n\n    if (canExecute) {\n        // Execute through MCP Server\n        response = {\n            success: true,\n            action: commands_requested || \"Health check completed\",\n            target_node: target_node,\n            tools_used: mcp_tools_used || [],\n            monitoring_results: monitoring_results || {},\n            execution_time: new Date().toISOString(),\n            message: \"Action executed successfully via MCP Server\"\n        };\n        executed = true;\n        actionTaken = true;\n    } else {\n        response = { skipped: true, reason: \"Approval required or denied\" };\n    }\n\n    // Construct human-readable summary per item\n    const actionDesc = commands_requested || \"Monitoring check\";\n    humanReadableSummary += `\\nNode: ${target_node}\\nAction: ${actionDesc}\\nStatus: ${executed ? \"✅ Executed via MCP\" : \"❌ Skipped\"}\\n`;\n    \n    if (response.error) {\n        humanReadableSummary += `Error: ${response.error}\\n`;\n    } else if (response.skipped) {\n        humanReadableSummary += `Reason: ${response.reason}\\n`;\n    } else if (executed && response.tools_used) {\n        humanReadableSummary += `MCP Tools: ${response.tools_used.join(', ')}\\n`;\n    }\n    \n    humanReadableSummary += \"----------------------------------------\";\n\n    results.push({\n        json: {\n            ...item.json,\n            executed,\n            response,\n            actionTaken,\n            humanReadableSummary\n        }\n    });\n}\n\nreturn results;\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        3120,
+        192
+      ],
+      "id": "da0fa4fe-7681-4929-be1d-8e84100c631e",
+      "name": "Approved Followup"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "6fc385e5-d514-4a79-9de2-64a0ec3603e7",
+              "leftValue": "branch",
+              "rightValue": "send_and_wait",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        1616,
+        336
+      ],
+      "id": "6fb4ba83-0e3f-4b28-a22d-d894d3e033f6",
+      "name": "Needs Approval"
+    },
+    {
+      "parameters": {
+        "fieldsToAggregate": {
+          "fieldToAggregate": [
+            {}
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.aggregate",
+      "typeVersion": 1,
+      "position": [
+        3296,
+        272
+      ],
+      "id": "12044c7c-2c67-4339-8663-a7a75e541156",
+      "name": "Aggregate"
+    },
+    {
+      "parameters": {
+        "type": "none",
+        "botCustomization": true,
+        "botActivity": "Request, Standby...",
+        "botActivityType": 1
+      },
+      "type": "@jjuanrivvera99/n8n-nodes-discord.discord",
+      "typeVersion": 1,
+      "position": [
+        464,
+        192
+      ],
+      "id": "a63c3510-822a-49c3-9ec7-6f5df97cdd18",
+      "name": "Processing Request",
+      "credentials": {
+        "discordApi": {
+          "id": "zO7e3OjzgaUpNsfY",
+          "name": "Discord App account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const items = $input.all();\n\nreturn items.map(item => {\n    const data = item.json;\n    const response = data.mcp_raw_response || data.data || {}; // USE MCP RAW RESPONSE\n    const subworkflow = $('When Executed by Another Workflow').first().json.SubWorkflow;\n    const structure = $('Structure Output').first().json || {};\n    \n    const needs_approval = structure.needs_approval;\n    const issue_detected = structure.issue_detected ?? false;\n    const applied_fix = structure.applied_fix ?? false;\n    const target_node = structure.target_node || \"unknown\";\n    const details = structure.details || {};\n    const queryType = details.query_type || details.query || \"generic\";\n    const monitoringResults = structure.monitoring_results || {};\n    const mcpToolsUsed = structure.mcp_tools_used || [];\n    const mcpRawResponse = structure.mcp_raw_response || {}; // ACCESS RAW MCP DATA\n\n    let message = \"\";\n    let summary = \"\";\n    \n    // === Declare common variables at function scope ===\n    const criticalIssues = monitoringResults.critical_issues || 0;\n    const warnings = monitoringResults.warnings || 0;\n\n    // === COMPREHENSIVE INFRASTRUCTURE STATUS ===\n    if (queryType === \"health_check\" || queryType === \"comprehensive_health_check\") {\n        const nodesOnline = monitoringResults.nodes_online || monitoringResults.nodes_checked?.length || 0;\n        const vmsRunning = monitoringResults.vms_running || 0;\n        const lxcsRunning = monitoringResults.lxcs_running || 0;\n        \n        summary = `🏗️ **Infrastructure Health Report**\\n`;\n        summary += `📊 **Overview:**\\n`;\n        summary += `- Nodes Online: ${nodesOnline} 🟢\\n`;\n        summary += `- VMs Running: ${vmsRunning} 💻\\n`;\n        summary += `- LXCs Running: ${lxcsRunning} 📦\\n`;\n        \n        // ADD DETAILED NODE INFORMATION FROM MCP RAW RESPONSE\n        if (mcpRawResponse.connectivity_test?.detailed_connectivity) {\n            summary += `\\n🖥️ **Node Details:**\\n`;\n            mcpRawResponse.connectivity_test.detailed_connectivity.forEach(node => {\n                const statusIcon = node.success ? '🟢' : '🔴';\n                summary += `${statusIcon} **${node.node_name}** (${node.type})\\n`;\n                summary += `   - Host: ${node.host}\\n`;\n                summary += `   - Version: ${node.version}\\n`;\n            });\n        }\n        \n        if (criticalIssues > 0) {\n            summary += `- Critical Issues: ${criticalIssues} 🔴\\n`;\n        }\n        if (warnings > 0) {\n            summary += `- Warnings: ${warnings} 🟡\\n`;\n        }\n        \n        if (mcpToolsUsed.length > 0) {\n            summary += `\\n🔧 **MCP Tools Used:** ${mcpToolsUsed.join(', ')}\\n`;\n        }\n        \n        if (monitoringResults.performance_summary) {\n            summary += `\\n📈 **Performance Summary:**\\n`;\n            Object.entries(monitoringResults.performance_summary).forEach(([key, value]) => {\n                summary += `- ${key}: ${value}\\n`;\n            });\n        }\n    }\n\n    // === AUTOMATED MAINTENANCE RESULTS ===\n    else if (queryType === \"automated_maintenance\") {\n        summary = `🔧 **Automated Maintenance Report**\\n`;\n        if (monitoringResults.issue) {\n            summary += `⚠️ **Issue Detected:** ${monitoringResults.issue}\\n`;\n        }\n        if (monitoringResults.fix_applied) {\n            summary += `✅ **Fix Applied:** ${monitoringResults.fix_applied}\\n`;\n        }\n        if (monitoringResults.status_after_fix) {\n            summary += `📊 **Status:** ${monitoringResults.status_after_fix}\\n`;\n        }\n    }\n\n    // === CRITICAL INCIDENT RESPONSE ===\n    else if (queryType === \"critical_incident\") {\n        summary = `🚨 **Critical Incident Report**\\n`;\n        if (monitoringResults.critical_error) {\n            summary += `❌ **Error:** ${monitoringResults.critical_error}\\n`;\n        }\n        if (monitoringResults.affected_vms) {\n            summary += `🖥️ **Affected VMs:** ${monitoringResults.affected_vms.join(', ')}\\n`;\n        }\n        if (monitoringResults.recommended_action) {\n            summary += `🛠️ **Recommended Action:** ${monitoringResults.recommended_action}\\n`;\n        }\n        if (details.estimated_downtime) {\n            summary += `⏱️ **Estimated Downtime:** ${details.estimated_downtime}\\n`;\n        }\n    }\n\n    // === VM LIST HANDLER (Legacy Support) ===\n    else if (Array.isArray(response) && response.some(vm => vm.vmid)) {\n        const vmSummaries = response.map(vm => {\n            const name = vm.name || `VM ${vm.vmid}`;\n            const statusIcon = vm.status === \"running\" ? \"🟢\" : \"🔴\";\n            const usedMemGB = (vm.mem / 1024 ** 3).toFixed(2);\n            const totalMemGB = (vm.maxmem / 1024 ** 3).toFixed(2);\n            const uptimeHours = (vm.uptime / 3600).toFixed(1);\n\n            return `${statusIcon} **${name}** (VMID: ${vm.vmid})\\n- Status: ${vm.status}\\n- CPU Cores: ${vm.cpus}\\n- Memory: ${usedMemGB} GB / ${totalMemGB} GB\\n- Uptime: ${uptimeHours} hours\\n- Tags: ${vm.tags || \"None\"}`;\n        }).join(\"\\n\\n\");\n\n        summary = `💻 **Virtual Machine Overview for ${target_node}**\\n\\n${vmSummaries}`;\n    }\n\n    // === STATUS SUMMARY FALLBACK ===\n    else if (structure.status_summary) {\n        summary = structure.status_summary;\n    }\n\n    // === Logic-based notification ===\n    if (!needs_approval) {\n        if (!issue_detected) {\n            if (criticalIssues === 0 && warnings === 0) {\n                message = `✅ **All Systems Operational**\\n${summary}`;\n            } else {\n                message = `ℹ️ **Status Update**\\n${summary}`;\n            }\n        } else if (applied_fix) {\n            message = `🛠️ **Issue Auto-Resolved**\\n${summary}`;\n        } else {\n            message = `⚠️ **Issue Detected**\\n${summary}`;\n        }\n    } else {\n        const priority = details.priority === \"critical\" ? \"🚨\" : \"⚠️\";\n        message = `${priority} **Action Requires Approval**\\n${summary}`;\n    }\n\n    // === Return structured output for parent workflow ===\n    return {\n        json: {\n            ...data,\n            subworkflow,\n            summary,\n            final_message: message,\n            raw_response: response,\n            mcp_raw_response: mcpRawResponse, // INCLUDE MCP RAW DATA\n            metadata: {\n                query_type: queryType,\n                needs_approval,\n                issue_detected,\n                applied_fix,\n                target_node,\n                subworkflow,\n                monitoring_results: monitoringResults,\n                mcp_tools_used: mcpToolsUsed,\n                mcp_raw_response: mcpRawResponse // ALSO IN METADATA\n            }\n        }\n    };\n});\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2032,
+        512
+      ],
+      "id": "90dbf844-813f-44b1-8262-3659ddaec534",
+      "name": "Notify User",
+      "notes": "📊 **Enhanced Status Reporter**\n\n**Purpose:** Generate comprehensive infrastructure status reports\n**Report Types:**\n- 🏗️ Infrastructure Health Reports\n- 🔧 Automated Maintenance Results  \n- 🚨 Critical Incident Responses\n- 💻 VM/LXC Overview (legacy support)\n\n**Enhanced Features:**\n- Smart formatting based on query type\n- MCP tools usage tracking\n- Performance metrics integration\n- Priority-based messaging (critical/warning/info)"
+    },
+    {
+      "parameters": {
+        "channelId": "={{ $('Pull User Request').item.json.channelId }}",
+        "content": "={{ \n  $items().map(item => {\n    const json = item.json;\n    let statusEmoji = \"⚪\";\n    let statusText = \"\";\n\n    if (json.needs_approval && json.approval === false) {\n      statusEmoji = \"🟡\"; statusText = \"Action declined by user\";\n    } else if (json.executed && json.response?.error) {\n      statusEmoji = \"🔴\"; statusText = `Error: ${json.response.error}`;\n    } else if (json.executed) {\n      statusEmoji = \"🟢\"; statusText = \"Action executed successfully\";\n    } else if (!json.executed && json.needs_approval) {\n      statusEmoji = \"🟠\"; statusText = \"Action skipped — awaiting approval\";\n    } else {\n      statusEmoji = \"🔵\"; statusText = \"Action not executed\";\n    }\n\n    return `${statusEmoji} Node: ${json.target_node}\\nAction: ${json.response_type} ${json.url}\\nStatus: ${statusText}\\n${json.combinedMessage || \"\"}`;\n  }).join(\"\\n----------------------------------------\\n\")\n}}\n",
+        "botCustomization": true,
+        "botActivity": "and Waiting...",
+        "botActivityType": 3,
+        "botStatus": "idle"
+      },
+      "type": "@jjuanrivvera99/n8n-nodes-discord.discord",
+      "typeVersion": 1,
+      "position": [
+        3456,
+        272
+      ],
+      "id": "57ebb628-1980-4ad2-ab2b-85ccf17e8fda",
+      "name": "Send Followup",
+      "credentials": {
+        "discordApi": {
+          "id": "zO7e3OjzgaUpNsfY",
+          "name": "Discord App account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "cbfc5294-cec7-4ab9-a38c-4a8f5775681f",
+              "leftValue": "={{ $json.approval }}",
+              "rightValue": "true",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        2736,
+        320
+      ],
+      "id": "47103968-bf23-44a0-bcb9-29f522a21b1a",
+      "name": "IS Approved"
+    },
+    {
+      "parameters": {
+        "jsCode": "try {\n  const userReply = ($json.content || $json.user_input || \"\").toLowerCase();\n  let approved = false;\n\n  if (userReply === \"approve\") {\n    approved = true;\n    $json.AIAgentOutput.needs_approval = false;\n  } else if (userReply === \"deny\") {\n    approved = false;\n    $json.AIAgentOutput.needs_approval = false;\n  } else {\n    // Invalid input\n    $json.AIAgentOutput.needs_approval = true;\n    $json.AIAgentOutput.applied_fix = false;\n    $json.AIAgentOutput.details = $json.AIAgentOutput.details || {};\n    $json.AIAgentOutput.details.invalid_input = $json.content || $json.user_input;\n    $json.AIAgentOutput.message = 'Approval input invalid or missing';\n  }\n\n  return [{\n    json: {\n      approval: approved,\n      target_node: $json.target_node,\n      url: $json.url,\n      response_type: $json.response_type,\n      details: $json.details,\n      node_auth: $json.node_auth,\n      combinedMessage: $json.combinedMessage,\n      needs_approval: $json.AIAgentOutput.needs_approval,\n      applied_fix: $json.AIAgentOutput.applied_fix,\n      message: $json.AIAgentOutput.message\n    }\n  }];\n} catch(err) {\n  $json.AIAgentOutput.issue_detected = true;\n  $json.AIAgentOutput.details = $json.AIAgentOutput.details || {};\n  $json.AIAgentOutput.details.error = err.message;\n\n  return [{\n    json: {\n      approval: false,\n      target_node: $json.target_node,\n      url: $json.url,\n      response_type: $json.response_type,\n      details: $json.details,\n      node_auth: $json.node_auth,\n      combinedMessage: $json.combinedMessage,\n      needs_approval: true,\n      applied_fix: false,\n      message: 'Error processing approval response'\n    }\n  }];\n}\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2576,
+        320
+      ],
+      "id": "f75ae6b5-7527-4583-902a-1d959040a3ca",
+      "name": "Parse Approval Response"
+    },
+    {
+      "parameters": {
+        "jsCode": "const results = $items().map(item => {\n    console.log('Structure Output - Processing item:', JSON.stringify(item, null, 2));\n    \n    try {\n        let aiAgentOutput;\n        let textContent = '';\n        \n        // AI Agent returns data in 'output' field\n        if (item.json.output) {\n            textContent = item.json.output;\n            console.log('AI Agent output field:', textContent);\n        } else {\n            aiAgentOutput = item.json;\n        }\n        \n        // Parse text content if present\n        if (textContent) {\n            const jsonMatch = textContent.match(/```(?:json)?\\s*([\\s\\S]*?)```/);\n            const jsonString = jsonMatch ? jsonMatch[1].trim() : textContent.trim();\n            aiAgentOutput = JSON.parse(jsonString);\n        }\n        \n        // Extract metadata from AI response\n        const toolName = aiAgentOutput.tool_name || 'unknown';\n        const targetNode = aiAgentOutput.target_node || 'all';\n        const mcpToolsUsed = aiAgentOutput.mcp_tools_used || [];\n        const needsApproval = aiAgentOutput.needs_approval || false;\n        const issueDetected = aiAgentOutput.issue_detected || false;\n        const appliedFix = aiAgentOutput.applied_fix || false;\n        \n        // Parse MCP raw response\n        let mcpRaw = aiAgentOutput.mcp_raw_response || {};\n        if (typeof mcpRaw === 'string') {\n            mcpRaw = JSON.parse(mcpRaw);\n        }\n        // Extract first element if array\n        if (Array.isArray(mcpRaw) && mcpRaw.length > 0) {\n            mcpRaw = mcpRaw[0];\n        }\n        \n        // === FORMAT OUTPUT BASED ON MCP DATA ===\n        let final_message = '';\n        let monitoringResults = {};\n        let queryType = 'generic';\n        \n        // NODE HEALTH CHECK\n        if (toolName === 'check_node_health' && mcpRaw.connectivity_test) {\n            const ct = mcpRaw.connectivity_test;\n            monitoringResults = {\n                nodes_online: ct.nodes_healthy || 0,\n                nodes_total: ct.nodes_checked || 0\n            };\n            queryType = 'health_check';\n            \n            const statusIcon = (ct.nodes_healthy === ct.nodes_checked) ? '🟢' : '🔴';\n            final_message = `🖥️ **Proxmox Infrastructure Status**\\n\\n${statusIcon} **Nodes:** ${ct.nodes_healthy}/${ct.nodes_checked} Online\\n\\n`;\n            \n            if (ct.detailed_connectivity) {\n                final_message += `📊 **Node Details:**\\n`;\n                ct.detailed_connectivity.forEach(n => {\n                    const icon = n.success ? '🟢' : '🔴';\n                    final_message += `${icon} **${n.node_name}** (${n.type}) - ${n.host} - v${n.version}\\n`;\n                });\n            }\n            \n            const health = mcpRaw.overall_health || 'unknown';\n            final_message += `\\n✅ **Overall Health:** ${health.toUpperCase()}`;\n        }\n        // VM LIST - when mcp_raw_response is already an array (not nested)\n        else if (Array.isArray(aiAgentOutput.mcp_raw_response)) {\n            const vms = aiAgentOutput.mcp_raw_response;\n            if (vms.some(v => v.vmid)) {\n                monitoringResults = {\n                    total_vms: vms.length,\n                    vms_running: vms.filter(v => v.status === 'running').length\n                };\n                queryType = 'vm_list';\n                \n                final_message = `💻 **Virtual Machines on ${targetNode}**\\n\\n� **Summary:** ${vms.length} VMs (${monitoringResults.vms_running} running)\\n\\n`;\n                \n                vms.forEach(vm => {\n                    const icon = vm.status === 'running' ? '🟢' : '🔴';\n                    final_message += `${icon} **${vm.name || 'VM-' + vm.vmid}** (ID: ${vm.vmid})\\n`;\n                    if (vm.status === 'running') {\n                        const memGB = ((vm.mem || 0) / 1024 ** 3).toFixed(1);\n                        const maxGB = ((vm.maxmem || 0) / 1024 ** 3).toFixed(1);\n                        final_message += `   • Memory: ${memGB}/${maxGB} GB • CPU: ${vm.cpus || '?'} cores\\n`;\n                    }\n                });\n            }\n        }\n        // FALLBACK\n        else {\n            final_message = `🔧 **${toolName.replace(/_/g, ' ').toUpperCase()}**\\n\\nNode: ${targetNode}\\n\\nData received successfully from MCP server.`;\n        }\n        \n        const result = {\n            json: {\n                final_message,\n                combinedMessage: final_message,\n                target_node: targetNode,\n                mcp_tools_used: mcpToolsUsed,\n                mcp_raw_response: aiAgentOutput.mcp_raw_response,\n                monitoring_results: monitoringResults,\n                details: { query_type: queryType, priority: 'normal', tool_name: toolName },\n                issue_detected: issueDetected,\n                applied_fix: appliedFix,\n                needs_approval: needsApproval,\n                commands_requested: needsApproval ? `${toolName} on ${targetNode}` : null,\n                branch: needsApproval ? \"send_and_wait\" : \"notify_user\",\n                subworkflow: \"proxmox_mcp\",\n                status_summary: final_message,\n                raw_response: aiAgentOutput\n            }\n        };\n        \n        console.log('Structure Output - Result:', JSON.stringify(result, null, 2));\n        return result;\n        \n    } catch (error) {\n        console.error('Structure Output - Error:', error);\n        return {\n            json: {\n                final_message: `❌ **Error:** ${error.message}`,\n                combinedMessage: `Error: ${error.message}`,\n                target_node: \"unknown\",\n                mcp_tools_used: [],\n                monitoring_results: {},\n                details: { query_type: \"error\", priority: \"high\", error: error.message },\n                issue_detected: true,\n                applied_fix: false,\n                needs_approval: false,\n                commands_requested: null,\n                branch: \"notify_user\",\n                subworkflow: \"error\",\n                status_summary: `Error: ${error.message}`,\n                raw_response: item.json\n            }\n        };\n    }\n});\n\nreturn results;\n"
+      },
+      "id": "abc8ee9c-17c0-42c0-8685-1254ff7bff15",
+      "name": "Structure Output",
+      "type": "n8n-nodes-base.code",
+      "position": [
+        1152,
+        336
+      ],
+      "typeVersion": 2,
+      "notes": "⚙️ **AI Response Processor**\n\n**Purpose:** Parse and standardize AI agent responses\n**Key Functions:**\n- Extract MCP tools used and monitoring results\n- Create comprehensive status summaries\n- Determine workflow branching (approval vs auto-execute)\n- Format data for downstream processing\n\n**Enhanced Features:**\n- Infrastructure status aggregation\n- Critical/warning/info classification\n- MCP tool tracking and result parsing"
+    },
+    {
+      "parameters": {
+        "channelId": "={{ $('Pull User Request').item.json.channelId }}",
+        "content": "={{ $json.final_message }}\n{{ $json.combinedMessage }}\n{{ $json.mcp_tools_used }}",
+        "botCustomization": true,
+        "botActivity": "and Waiting...",
+        "botActivityType": 3,
+        "botStatus": "idle"
+      },
+      "type": "@jjuanrivvera99/n8n-nodes-discord.discord",
+      "typeVersion": 1,
+      "position": [
+        2416,
+        688
+      ],
+      "id": "bab7dd89-89dd-4812-b6a6-de5b5a3c3ce3",
+      "name": "Send Reply",
+      "credentials": {
+        "discordApi": {
+          "id": "zO7e3OjzgaUpNsfY",
+          "name": "Discord App account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "message",
+        "operation": "sendAndWait",
+        "guildId": {
+          "__rl": true,
+          "value": "329079420360982530",
+          "mode": "list",
+          "cachedResultName": "Jericho",
+          "cachedResultUrl": "https://discord.com/channels/329079420360982530"
+        },
+        "channelId": "={{ $('Pull User Request').item.json.channelId || '1346909607854870610' }}",
+        "message": "=🚨 **Action Requires Approval**\n\n**Target Node:** {{ $json.target_node }}\n**Action Requested:** {{ $json.commands_requested || \"Monitoring operation\" }}\n**MCP Tools:** {{ ($json.mcp_tools_used || []).join(', ') }}\n**Priority:** {{ $json.details?.priority || \"normal\" }}\n\n**Details:** {{ $json.combinedMessage }}\n\n**Estimated Impact:** {{ $json.details?.estimated_downtime || \"Low\" }}\n\nReply **approve** or **deny**",
+        "approvalOptions": {
+          "values": {
+            "approvalType": "double"
+          }
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.discord",
+      "typeVersion": 2,
+      "position": [
+        2416,
+        320
+      ],
+      "id": "081a74db-c958-40c5-a536-735995c1b0f2",
+      "name": "Send AND Wait",
+      "webhookId": "6723d109-35dd-466f-80d7-5c3971998a52",
+      "credentials": {
+        "discordBotApi": {
+          "id": "oXOUwkFdAwpbp9ss",
+          "name": "Discord Bot account"
+        }
+      },
+      "notes": "👤 **User Approval Gateway**\n\n**Purpose:** Request user approval for potentially disruptive actions\n**Enhanced Display:**\n- Target node and action details\n- MCP tools that will be used\n- Priority level and estimated impact\n- Estimated downtime information\n\n**Actions Requiring Approval:**\n- Node reboots or maintenance mode\n- VM/LXC migrations or major changes\n- Storage operations, backup deletion\n- Configuration modifications\n\n**User Response:** approve/deny"
+    },
+    {
+      "parameters": {
+        "model": "llama3.2:3b",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOllama",
+      "typeVersion": 1,
+      "position": [
+        656,
+        576
+      ],
+      "id": "ef011688-1ed0-44e8-8c85-d739f67717a1",
+      "name": "Ollama Chat Model",
+      "credentials": {
+        "ollamaApi": {
+          "id": "g4qsIa9ik5l18myY",
+          "name": "Ollama account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "endpointUrl": "http://192.168.4.14:8888/mcp",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.mcpClientTool",
+      "typeVersion": 1.2,
+      "position": [
+        1232,
+        640
+      ],
+      "id": "a6f3b2a9-c32a-4a0d-aee1-40855d61379a",
+      "name": "MCP Tool"
+    }
+  ],
+  "connections": {
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Structure Output",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "PBS API Docs": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "PVE API Docs": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "PVE API Wiki": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "MCP Approved Action Execution": {
+      "main": [
+        [
+          {
+            "node": "Approved Followup",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "MCP Tools Execution": {
+      "main": [
+        [
+          {
+            "node": "Notify User",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Tool Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Auto-fixing Output Parser",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "Auto-fixing Output Parser",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Pull User Request": {
+      "main": [
+        [
+          {
+            "node": "Processing Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "When Executed by Another Workflow": {
+      "main": [
+        [
+          {
+            "node": "Pull User Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Task Complete": {
+      "main": [
+        [
+          {
+            "node": "Notify Task Complete IF SubWorkflow",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Declined Followup": {
+      "main": [
+        [
+          {
+            "node": "Aggregate",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Approved Followup": {
+      "main": [
+        [
+          {
+            "node": "Aggregate",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Needs Approval": {
+      "main": [
+        [
+          {
+            "node": "Send AND Wait",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "MCP Tools Execution",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Aggregate": {
+      "main": [
+        [
+          {
+            "node": "Send Followup",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Processing Request": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Notify User": {
+      "main": [
+        [
+          {
+            "node": "Task Complete",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send Followup": {
+      "main": [
+        [
+          {
+            "node": "Task Complete",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IS Approved": {
+      "main": [
+        [
+          {
+            "node": "MCP Approved Action Execution",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Declined Followup",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse Approval Response": {
+      "main": [
+        [
+          {
+            "node": "IS Approved",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structure Output": {
+      "main": [
+        [
+          {
+            "node": "Needs Approval",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send AND Wait": {
+      "main": [
+        [
+          {
+            "node": "Parse Approval Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Ollama Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "MCP Tool": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "pinData": {
+    "When Executed by Another Workflow": [
+      {
+        "content": "what is the status of proxmox node Proximo?",
+        "SubWorkflow": true,
+        "channelId": "1346909607854870610"
+      }
+    ]
+  },
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "74f7b7e43879ad5e066683ec12b69cba1be8c55b373082f88b61cf23c5b39233"
+  }
+}

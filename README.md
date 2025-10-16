@@ -146,14 +146,63 @@ python3 main.py --test-connection
 - Verifies MCP server protocol initialization
 - Provides comprehensive system health check
 
-**🔌 MCP Server Mode:**
+**🔌 MCP Server Mode (stdio):**
 ```bash
 python3 main.py --mcp-server
 ```
-- Starts production MCP server for n8n integration
-- Uses stdio interface for MCP Client connections
-- Provides real-time Proxmox infrastructure management
-- Ready for AI agent workflows
+- Starts enhanced MCP server for n8n integration
+- Uses stdio interface for local MCP Client connections
+- Comprehensive Proxmox infrastructure management
+- Full suite of advanced tools and capabilities
+
+**🌐 MCP HTTP Server Mode (remote):**
+```bash
+python3 main.py --mcp-http --host 0.0.0.0 --port 8000
+```
+- Starts enhanced HTTP/WebSocket MCP server
+- Supports remote n8n connections via network
+- **Same comprehensive functionality as stdio server**
+- Ideal for distributed deployments
+
+---
+
+## 🛠️ Enhanced MCP Tools & Capabilities
+
+Both the stdio and HTTP MCP servers now provide **identical comprehensive functionality**:
+
+### 🏗️ Core Infrastructure Management
+- **`get_cluster_status`** - Comprehensive cluster health and resource overview
+- **`get_nodes`** - Detailed node information with performance metrics
+- **`get_node_status`** - Specific node status including CPU, memory, storage
+- **`check_node_health`** - Connectivity and API health validation
+
+### 🖥️ Virtual Machine Operations
+- **`get_vms`** - List VMs with status, configuration, and performance data
+- **`execute_vm_command`** - Complete VM lifecycle management:
+  - `start`, `stop`, `shutdown` (graceful/forced)
+  - `restart`, `reboot`, `suspend`, `resume`, `reset`
+  - `status`, `config` - Query current state and configuration
+
+### 📦 Container Management
+- **`get_lxcs`** - LXC container information and status
+- **`execute_lxc_command`** - Full container lifecycle operations:
+  - Same command set as VMs with container-specific optimizations
+
+### 💾 Storage & Backup Monitoring
+- **`get_storage`** - Storage utilization, health, and capacity analysis
+- **`get_backup_info`** - Backup job status and scheduling information
+- **`get_node_tasks`** - Recent operations, task history, and error tracking
+
+### 🌐 Network & Operations
+- **`get_network_info`** - Network configuration and interface status
+- **`send_notification`** - Multi-channel notifications (Discord, Gotify)
+
+### 🤖 AI-Ready Prompts
+- **`proxmox_health_check`** - Guided infrastructure health assessment
+- **`proxmox_status_report`** - Comprehensive reporting with recommendations
+- **`proxmox_vm_management`** - VM operations best practices
+- **`proxmox_storage_analysis`** - Storage optimization guidance
+- **`proxmox_incident_response`** - Systematic troubleshooting procedures
 
 ---
 
@@ -187,7 +236,7 @@ Discord User → ChatBot Agent → Proxmox MCP Agent → MCP Server → Proxmox 
 
 There are two ways to connect n8n to your Proxmox MCP Server:
 
-#### Option 1: Local Installation (stdio)
+#### Option 1: Local Installation (stdio) - **Same Enhanced Features**
 
 If you can install the MCP server on the same machine as n8n:
 
@@ -199,7 +248,7 @@ pip install -r requirements.txt
 cp .env.example .env
 # Edit .env with your Proxmox server credentials
 
-# Start stdio server
+# Start enhanced stdio server
 python3 main.py --mcp-server
 ```
 
@@ -219,7 +268,7 @@ Configure your MCP Client node:
 }
 ```
 
-#### Option 2: Remote Server (WebSocket) ⭐ **Recommended for separate servers**
+#### Option 2: Remote Server (WebSocket) ⭐ **Same Enhanced Features**
 
 If your n8n and Proxmox MCP server are on different machines:
 
@@ -231,7 +280,7 @@ pip install -r requirements.txt
 cp .env.example .env
 # Edit .env with your Proxmox server credentials
 
-# Start HTTP/WebSocket server
+# Start enhanced HTTP/WebSocket server
 python3 main.py --mcp-http --host 0.0.0.0 --port 8000
 ```
 
@@ -248,6 +297,8 @@ Configure your MCP Client node:
   }
 }
 ```
+
+> 🎯 **Both server modes now provide identical comprehensive functionality** - choose based on your deployment architecture, not feature differences!
 
 **Replace `YOUR-SERVER-IP` with the actual IP address of your MCP server machine.**
 
@@ -278,17 +329,19 @@ Configure your MCP Client node:
 
 #### Server Management Commands
 
-**Start stdio server (local n8n):**
+**Start enhanced stdio server (local n8n):**
 ```bash
 python3 main.py --mcp-server
 ```
+*Full feature set: 13 tools + 5 AI prompts + resources*
 
-**Start HTTP server (remote n8n):**
+**Start enhanced HTTP server (remote n8n):**
 ```bash
 python3 main.py --mcp-http --host 0.0.0.0 --port 8000
 ```
+*Identical feature set: 13 tools + 5 AI prompts + resources*
 
-**Test connectivity:**
+**Test connectivity and validate setup:**
 ```bash
 python3 main.py --test-connection
 ```
@@ -298,15 +351,29 @@ python3 main.py --test-connection
 curl http://YOUR-SERVER-IP:8000/health
 ```
 
-## �🧩 Example Use Cases
+> ✨ **Feature Parity Achieved**: Both servers now provide identical comprehensive Proxmox management capabilities!
 
-- **AI-Powered Automation**: n8n AI Agent analyzes events and takes intelligent actions
-- **Smart Notifications**: AI-enhanced notifications with context and severity analysis
-- **Natural Language Interface**: Ask questions like "What's the status of my VMs?" via Discord
-- **Automated Infrastructure Management**: AI agents perform routine maintenance with approval workflows
-- **Real-time Monitoring**: Continuous monitoring with intelligent alerting and remediation
-- **Event-Driven Responses**: Automatic responses to Proxmox events (VM failures, backup issues, etc.)
-- **Cross-Platform Integration**: Connect Proxmox to Discord, Gotify, and other notification systems
+## 🧩 Enhanced Use Cases
+
+### 🤖 AI-Powered Infrastructure Management
+- **Intelligent Health Monitoring**: AI agents continuously assess cluster health using `check_node_health`
+- **Predictive Maintenance**: Automated analysis of `get_node_tasks` to identify potential issues
+- **Smart Resource Allocation**: AI-driven VM/LXC management using comprehensive `get_vms`/`get_lxcs` data
+
+### 📊 Advanced Operations & Analytics  
+- **Capacity Planning**: AI analysis of `get_storage` trends for expansion recommendations
+- **Performance Optimization**: Intelligent VM placement using detailed node resource data
+- **Backup Strategy**: AI-enhanced backup monitoring via `get_backup_info` with failure prediction
+
+### 🔔 Intelligent Notification & Response
+- **Context-Aware Alerts**: Smart notifications using severity analysis and historical data
+- **Natural Language Interface**: Discord ChatBot answers complex queries like "Which VMs need attention?"
+- **Automated Remediation**: AI agents execute safe recovery procedures with human approval
+
+### 🌐 Cross-Platform Integration
+- **Multi-Channel Communications**: Unified notifications across Discord, Gotify, and other platforms
+- **Event-Driven Workflows**: Automatic responses to Proxmox events with intelligent escalation
+- **Distributed Management**: Remote HTTP server enables management from anywhere
 
 ---
 
