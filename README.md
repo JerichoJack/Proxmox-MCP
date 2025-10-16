@@ -112,6 +112,41 @@ Each section can be toggled to match your deployment and notification preference
 
 ---
 
+## 🧰 Available MCP Tools
+
+Both the stdio (`mcp_server.py`) and HTTP/WebSocket (`mcp_server_http.py`) servers provide comprehensive tools for managing your Proxmox infrastructure:
+
+### Infrastructure Management
+- **`get_available_nodes`** - Get list of all configured PVE and PBS nodes with connection status, version information, and API details
+- **`get_cluster_resources`** - Retrieve comprehensive cluster resource information (nodes, VMs, storage)
+- **`get_node_status`** - Get detailed status of a specific Proxmox node
+- **`get_vm_status`** - Get current status and configuration of a virtual machine or container
+- **`get_vm_config`** - Get detailed configuration of a VM/CT
+
+### VM Operations
+- **`start_vm`** - Start a virtual machine or container
+- **`stop_vm`** - Stop a virtual machine or container
+- **`restart_vm`** - Restart a virtual machine or container
+- **`create_vm_snapshot`** - Create a snapshot of a VM/CT
+- **`list_vm_snapshots`** - List all snapshots for a VM/CT
+
+### Backup Management
+- **`list_backups`** - List all available backups for VMs/CTs
+- **`create_backup`** - Create a new backup of a VM/CT
+
+### Storage & Network
+- **`get_storage_status`** - Get status and usage information for storage
+- **`get_network_config`** - Get network configuration for a node or VM
+
+### Task Management
+- **`get_task_status`** - Monitor status of asynchronous Proxmox tasks
+
+**Total Tools Available:** 14 comprehensive tools for complete Proxmox management
+
+> 🔄 **Feature Parity:** Both server implementations (stdio and HTTP) provide identical tool functionality, ensuring consistent experience regardless of deployment method.
+
+---
+
 ## 🚀 Getting Started
 
 ### Quick Start (Production Environment)

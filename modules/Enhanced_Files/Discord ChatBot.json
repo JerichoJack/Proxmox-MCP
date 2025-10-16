@@ -1,5 +1,4 @@
 {
-  "name": "Discord ChatBot",
   "nodes": [
     {
       "parameters": {
@@ -432,7 +431,7 @@
         "promptType": "define",
         "text": "={{ $json.content }}",
         "options": {
-          "systemMessage": "={\n  \"role\": \"system\",\n  \"name\": \"RouterAgent\",\n  \"purpose\": \"Route user messages to the correct specialized agent.\",\n  \"instructions\": {\n    \"overview\": \"You are the Main Routing Agent. Your job is to analyze the user's message and route it to the correct sub-agent. Do not answer, summarize, or write anything yourself — only decide which agent should handle the query.\",\n    \"agents\": {\n      \"researchAgent\": \"Use for factual or up-to-date questions requiring web searches.\",\n      \"conversationAgent\": \"Use for casual chat, opinions, emotional statements, or general conversation.\",\n      \"proxmoxAgent\": \"Use for anything related to Proxmox nodes, VMs, or system information.\"\n    },\n    \"routing_rules\": [\n      \"If the message is about Proxmox, use 'proxmoxAgent'.\",\n      \"If the message requires factual or current information, use 'researchAgent'.\",\n      \"If the message is conversational, ambiguous, or emotional, use 'conversationAgent'.\",\n      \"When uncertain, default to 'conversationAgent'.\"\n    ],\n    \"special_rules\": [\n      \"Some tasks may require updated info; use 'researchAgent' first, then provide results to the task agent.\",\n      \"Never send small talk or opinions to task agents.\",\n      \"Always return only the agent’s output exactly as received.\"\n    ],\n    \"output_format\": {\n      \"expected\": \"If agent output includes 'final_message', send only 'final_message' exactly as it is to the user including emojis and formatting.\",\n      \"example\": {\n        \"input\": \"Is Proxmox node Proximo online?\",\n        \"agent\": \"proxmoxAgent\",\n        \"agent_output\": [\n          {\n            \"final_message\": \"✅ Node **pve-test** is healthy.\\n🖥️ CPU Load: 2.8%\\nMemory: 37.7 GB / 125.8 GB\\nUptime: 95 hrs\\n\"\n          }\n        ],\n        \"output\": \"✅ Node **pve-test** is healthy.\\n🖥️ CPU Load: 2.8%\\nMemory: 37.7 GB / 125.8 GB\\nUptime: 95 hrs\\n\"\n      }\n    },\n    \"examples\": [\n      { \"input\": \"What is the population of Canada?\", \"route_to\": \"researchAgent\" },\n      { \"input\": \"What do you think about AI art?\", \"route_to\": \"conversationAgent\" },\n      { \"input\": \"Tell me something random.\", \"route_to\": \"conversationAgent\" },\n      { \"input\": \"Is Proxmox node Proximo online?\", \"route_to\": \"proxmoxAgent\" }\n    ],\n    \"reminders\": [\n      \"Focus only on routing; never generate content yourself.\",\n      \"If unsure, route to 'conversationAgent'.\",\n      \"Use current system time when relevant: {{ $now }}\",\n      \"content\" \"{{ $json.content }}\"\n    ]\n  }\n}"
+          "systemMessage": "={\n  \"role\": \"system\",\n  \"name\": \"RouterAgent\",\n  \"purpose\": \"Route user messages to the correct specialized agent.\",\n  \"instructions\": {\n    \"overview\": \"You are the Main Routing Agent. Your job is to analyze the user's message and route it to the correct sub-agent. Do not answer, summarize, or write anything yourself — only decide which agent should handle the query.\",\n    \"agents\": {\n      \"researchAgent\": \"Use for factual or up-to-date questions requiring web searches.\",\n      \"conversationAgent\": \"Use for casual chat, opinions, emotional statements, or general conversation.\",\n      \"proxmoxAgent\": \"Use for anything related to Proxmox nodes, VMs, or system information.\"\n    },\n    \"routing_rules\": [\n      \"If the message is about Proxmox, use 'proxmoxAgent'.\",\n      \"If the message requires factual or current information, use 'researchAgent'.\",\n      \"If the message is conversational, ambiguous, or emotional, use 'conversationAgent'.\",\n      \"When uncertain, default to 'conversationAgent'.\"\n    ],\n    \"special_rules\": [\n      \"Some tasks may require updated info; use 'researchAgent' first, then provide results to the task agent.\",\n      \"Never send small talk or opinions to task agents.\",\n      \"Always return only the agent’s output exactly as received.\"\n    ],\n    \"output_format\": {\n      \"expected\": \"If agent output includes 'final_message', send only 'final_message' exactly as it is to the user. PRESERVE ALL EMOJIS, UNICODE CHARACTERS, AND FORMATTING EXACTLY. Do not modify, clean, or interpret the text in any way.\",\n      \"critical_rules\": [\n        \"NEVER remove or replace emoji characters (🟢, 🔴, ✅, etc.)\",\n        \"NEVER modify whitespace or line breaks\",\n        \"NEVER paraphrase or summarize the agent's response\",\n        \"Return the exact Unicode characters as received\"\n      ],\n      \"example\": {\n        \"input\": \"Is Proxmox node Proximo online?\",\n        \"agent\": \"proxmoxAgent\",\n        \"agent_output\": [\n          {\n            \"final_message\": \"✅ Node **pve-test** is healthy.\\n🖥️ CPU Load: 2.8%\\nMemory: 37.7 GB / 125.8 GB\\nUptime: 95 hrs\\n\"\n          }\n        ],\n        \"output\": \"✅ Node **pve-test** is healthy.\\n🖥️ CPU Load: 2.8%\\nMemory: 37.7 GB / 125.8 GB\\nUptime: 95 hrs\\n\"\n      }\n    },\n    \"examples\": [\n      { \"input\": \"What is the population of Canada?\", \"route_to\": \"researchAgent\" },\n      { \"input\": \"What do you think about AI art?\", \"route_to\": \"conversationAgent\" },\n      { \"input\": \"Tell me something random.\", \"route_to\": \"conversationAgent\" },\n      { \"input\": \"Is Proxmox node Proximo online?\", \"route_to\": \"proxmoxAgent\" }\n    ],\n    \"reminders\": [\n      \"Focus only on routing; never generate content yourself.\",\n      \"If unsure, route to 'conversationAgent'.\",\n      \"Use current system time when relevant: {{ $now }}\",\n      \"content\" \"{{ $json.content }}\"\n    ]\n  }\n}"
         }
       },
       "type": "@n8n/n8n-nodes-langchain.agent",
@@ -575,7 +574,6 @@
       ]
     }
   ],
-  "pinData": {},
   "connections": {
     "Ollama Model": {
       "ai_languageModel": [
@@ -583,6 +581,17 @@
           {
             "node": "Vector Store Tool",
             "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Vector Store Tool": {
+      "ai_tool": [
+        [
+          {
+            "node": "RouterAgent",
+            "type": "ai_tool",
             "index": 0
           }
         ]
@@ -605,17 +614,6 @@
           {
             "node": "Vector Store Tool",
             "type": "ai_vectorStore",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Vector Store Tool": {
-      "ai_tool": [
-        [
-          {
-            "node": "RouterAgent",
-            "type": "ai_tool",
             "index": 0
           }
         ]
@@ -748,34 +746,20 @@
       ]
     }
   },
-  "active": true,
-  "settings": {
-    "executionOrder": "v1"
+  "pinData": {
+    "Discord MSG to BOT": [
+      {
+        "content": "What is the status of my Proxmox Nodes?",
+        "channelId": "1346909607854870610",
+        "userId": "222503276354994187",
+        "userName": "thejerichojack",
+        "userTag": "thejerichojack",
+        "messageId": "1428054316350177311"
+      }
+    ]
   },
-  "versionId": "05f2da39-6ea6-42f1-b506-e71627307ed7",
   "meta": {
     "templateCredsSetupCompleted": true,
     "instanceId": "74f7b7e43879ad5e066683ec12b69cba1be8c55b373082f88b61cf23c5b39233"
-  },
-  "id": "wvLZOjlGFWwoAGFo",
-  "tags": [
-    {
-      "createdAt": "2025-04-08T13:09:52.844Z",
-      "updatedAt": "2025-04-08T13:09:52.844Z",
-      "id": "1vk4uJxK0P4DZPmW",
-      "name": "Assistant"
-    },
-    {
-      "createdAt": "2025-04-08T13:24:53.282Z",
-      "updatedAt": "2025-04-08T13:24:53.282Z",
-      "id": "CVsjGmJ7crVKdjEs",
-      "name": "Chat-BOT"
-    },
-    {
-      "createdAt": "2025-04-08T13:24:53.289Z",
-      "updatedAt": "2025-04-08T13:24:53.289Z",
-      "id": "tRjbcE4KJ7bWsZvA",
-      "name": "Discord"
-    }
-  ]
+  }
 }
