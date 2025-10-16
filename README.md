@@ -52,35 +52,44 @@ The MCP Server ingests all these sources and provides:
 ## 🧱 Project Structure
 ```plaintext
 Proxmox-MCP/
-├── core/
-│   ├── config.py (MCPConfig)                   ✅ Implemented
-│   ├── event_dispatcher.py (EventDispatcher)   ✅ Implemented
-│   ├── event_listener.py (EventListener)       ⚙ In Work
-│   ├── manager.py (MCPManager)                 ✅ Implemented
-│   └── utils.py (logging, helpers)             ✅ Implemented
+├── core/                                       # Core functionality
+│   ├── api_tester.py                          # API connectivity testing
+│   ├── config.py (MCPConfig)                  # Configuration management
+│   ├── event_dispatcher.py                    # Event dispatching
+│   ├── event_listener.py                      # Event listening base
+│   ├── manager.py (MCPManager)                # MCP Manager
+│   ├── proxmox_api.py                         # Proxmox API client wrapper
+│   └── utils.py                               # Logging and helper utilities
 ├── modules/
-│   ├── input/                                  # Event ingestion modules
-│   │   ├── base.py                             # BaseListener class
-│   │   ├── discord_listener.py                 # DiscordListener ✅ Implemented
-│   │   ├── email_listener.py                   # EmailListener ✅ Implemented
-│   │   ├── gotify_listener.py                  # GotifyListener ✅ Implemented  
-│   │   ├── syslog_listener.py                  # SyslogListener ✅ Implemented
-│   │   └── websocket_listener.py               # WebSocketListener ✅ Standalone & clustered support
-│   ├── output/                                 # Event dispatch / notification modules
-│   │   ├── base.py                             # BaseNotifier class
-│   │   ├── discord_notifier.py                 # DiscordNotifier ✅ Implemented
-│   │   ├── gotify_notifier.py                  # GotifyNotifier ✅ Implemented
-│   │   ├── ntfy_notifier.py                    # NtfyNotifier
-│   │   └── email_notifier.py                   # EmailNotifier (future)
-├── main.py                                     ✅ Unified Production Entry Point
-├── mcp_server.py                              ✅ MCP Server for n8n Integration  
-├── n8n_agent_interface.py                     ✅ n8n AI Agent HTTP API (Legacy)
-├── Discord ChatBot.json                       ✅ n8n Discord ChatBot Workflow
-├── 🤖Proxmox MCP Agent Workflow - Enhanced.json ✅ Advanced n8n AI Agent Workflow
-├── setup_n8n_agent.py                         ✅ Setup & Test Suite
-├── .env.example                                ✅ Added
-├── requirements.txt                            ✅ Added
-└── README.md                                   ✅ Updated
+│   ├── Enhanced_Files/                        # Enhanced documentation & examples
+│   │   ├── Discord ChatBot.json               # n8n Discord ChatBot Workflow
+│   │   ├── 🤖Proxmox MCP Agent Workflow - Enhanced.json # Advanced AI Agent Workflow
+│   │   ├── ENHANCED_README.md                 # Enhanced features documentation
+│   │   ├── QUICK_START.md                     # Quick start guide
+│   │   └── roadmap.md                         # Project roadmap
+│   ├── input/                                 # Event ingestion modules
+│   │   ├── base.py                            # BaseListener class
+│   │   ├── discord_listener.py                # Discord webhook listener
+│   │   ├── email_listener.py                  # Email alert listener
+│   │   ├── gotify_listener.py                 # Gotify stream listener
+│   │   ├── syslog_listener.py                 # Syslog UDP listener
+│   │   └── websocket_listener.py              # WebSocket event listener
+│   ├── output/                                # Event dispatch / notification modules
+│   │   ├── base.py                            # BaseNotifier class
+│   │   ├── discord_notifier.py                # Discord notifier
+│   │   └── gotify_notifier.py                 # Gotify notifier
+│   └── Test/                                  # Test suite
+│       ├── test_connection.py
+│       ├── test_discord.py
+│       ├── test_enhanced_server.py
+│       ├── test_mcp_server.py
+│       └── ... (additional test files)
+├── main.py                                    # Unified Production Entry Point
+├── mcp_server.py                              # MCP stdio Server (local n8n)
+├── mcp_server_http.py                         # MCP HTTP/WebSocket Server (remote n8n)
+├── .env.example                               # Example configuration file
+├── requirements.txt                           # Python dependencies
+└── README.md                                  # This file
 ```
 
 ---
@@ -91,8 +100,8 @@ The `.env` file controls how the MCP Server connects to Proxmox and handles even
 Each section can be toggled to match your deployment and notification preferences.
 - **Standalone, Clustered, or Mixed Lab Support**
 - **The key `LAB_CONFIGURATION` allows you to define if your lab consists of standalone nodes, clustered nodes, or a combination.**
-- **Event Listeners can be toggled per type (WebSocket, Email, Syslog).**
-- **Notifiers can be toggled per backend (Discord, Gotify, Ntfy, Email).**
+- **Event Listeners can be toggled per type (WebSocket, Email, Syslog, Gotify, Discord).**
+- **Notifiers can be toggled per backend (Discord, Gotify are currently supported).**
 - **Node credentials, tokens, and host information are stored per-node using .env sections.**
 > ⚠️ **Note:** See the full `.env.example` in the repository for structure and supported keys.
 
@@ -116,32 +125,32 @@ Each section can be toggled to match your deployment and notification preference
 
 Both the stdio (`mcp_server.py`) and HTTP/WebSocket (`mcp_server_http.py`) servers provide comprehensive tools for managing your Proxmox infrastructure:
 
-### Infrastructure Management
-- **`get_available_nodes`** - Get list of all configured PVE and PBS nodes with connection status, version information, and API details
-- **`get_cluster_resources`** - Retrieve comprehensive cluster resource information (nodes, VMs, storage)
-- **`get_node_status`** - Get detailed status of a specific Proxmox node
-- **`get_vm_status`** - Get current status and configuration of a virtual machine or container
-- **`get_vm_config`** - Get detailed configuration of a VM/CT
+### Core Infrastructure Management
+- **`get_cluster_status`** - Get comprehensive status of Proxmox cluster including nodes, resources, and health
+- **`get_nodes`** - Get detailed information about all Proxmox nodes including status and resources
+- **`get_node_status`** - Get detailed status of a specific Proxmox node including CPU, memory, storage usage
+- **`check_node_health`** - Perform comprehensive health check on Proxmox nodes including connectivity and resource status
 
-### VM Operations
-- **`start_vm`** - Start a virtual machine or container
-- **`stop_vm`** - Stop a virtual machine or container
-- **`restart_vm`** - Restart a virtual machine or container
-- **`create_vm_snapshot`** - Create a snapshot of a VM/CT
-- **`list_vm_snapshots`** - List all snapshots for a VM/CT
+### Virtual Machine Operations
+- **`get_vms`** - Get comprehensive VM information including status, configuration, and performance
+- **`execute_vm_command`** - Execute commands on VMs (start, stop, shutdown, restart, reboot, suspend, resume, reset, status, config)
 
-### Backup Management
-- **`list_backups`** - List all available backups for VMs/CTs
-- **`create_backup`** - Create a new backup of a VM/CT
+### Container Management
+- **`get_lxcs`** - Get comprehensive LXC container information including status and configuration
+- **`execute_lxc_command`** - Execute commands on LXC containers (start, stop, shutdown, restart, reboot, suspend, resume, status, config)
 
-### Storage & Network
-- **`get_storage_status`** - Get status and usage information for storage
-- **`get_network_config`** - Get network configuration for a node or VM
+### Storage & Backup Management
+- **`get_storage`** - Get detailed storage information including usage, content, and health status
+- **`get_backup_info`** - Get backup job information and status
 
-### Task Management
-- **`get_task_status`** - Monitor status of asynchronous Proxmox tasks
+### Advanced Operations
+- **`get_node_tasks`** - Get recent tasks and operations for nodes
+- **`get_network_info`** - Get network configuration and interface information
 
-**Total Tools Available:** 14 comprehensive tools for complete Proxmox management
+### Notifications
+- **`send_notification`** - Send notification through configured channels (Discord, Gotify)
+
+**Total Tools Available:** 13 comprehensive tools for complete Proxmox management
 
 > 🔄 **Feature Parity:** Both server implementations (stdio and HTTP) provide identical tool functionality, ensuring consistent experience regardless of deployment method.
 
@@ -153,7 +162,7 @@ Both the stdio (`mcp_server.py`) and HTTP/WebSocket (`mcp_server_http.py`) serve
 
 ```bash
 # Clone repository and setup
-git clone <repository-url>
+git clone https://github.com/JerichoJack/Proxmox-MCP.git
 cd Proxmox-MCP
 pip install -r requirements.txt
 
@@ -239,21 +248,29 @@ Both the stdio and HTTP MCP servers now provide **identical comprehensive functi
 - **`proxmox_storage_analysis`** - Storage optimization guidance
 - **`proxmox_incident_response`** - Systematic troubleshooting procedures
 
+### 📚 Resources
+- **`proxmox://config`** - Current Proxmox MCP Server configuration
+- **`proxmox://nodes`** - List of configured nodes with connection status
+- **`proxmox://capabilities`** - Server capabilities and tool descriptions
+- **`proxmox://status`** - Current server status and health
+
+**Summary:** 13 Tools + 5 AI Prompts + 4 Resources = Comprehensive Proxmox Management Platform
+
 ---
 
-## � n8n AI Agent Integration
+## 🧩 n8n AI Agent Integration
 
 This project includes complete n8n workflow examples for intelligent Proxmox management:
 
 ### 🎯 Workflow Examples
 
-**1. Discord ChatBot (`Discord ChatBot.json`)**
+**1. Discord ChatBot** (`modules/Enhanced_Files/Discord ChatBot.json`)
 - Natural language interface for Proxmox queries
 - Processes user commands via Discord
 - Routes complex requests to specialized AI agents
 - Supports both simple queries and complex infrastructure management
 
-**2. Proxmox MCP Agent (`🤖Proxmox MCP Agent Workflow - Enhanced.json`)**
+**2. Proxmox MCP Agent** (`modules/Enhanced_Files/🤖Proxmox MCP Agent Workflow - Enhanced.json`)
 - Advanced AI agent for Proxmox infrastructure management
 - Uses MCP tools for real-time system monitoring
 - Intelligent decision making with user approval workflows
@@ -277,7 +294,7 @@ If you can install the MCP server on the same machine as n8n:
 
 ```bash
 # On your n8n server
-git clone <your-repo-url> /opt/Proxmox-MCP
+git clone https://github.com/JerichoJack/Proxmox-MCP.git /opt/Proxmox-MCP
 cd /opt/Proxmox-MCP
 pip install -r requirements.txt
 cp .env.example .env
@@ -309,7 +326,7 @@ If your n8n and Proxmox MCP server are on different machines:
 
 ```bash
 # On your Proxmox MCP server machine
-git clone <your-repo-url> /root/Proxmox-MCP
+git clone https://github.com/JerichoJack/Proxmox-MCP.git /root/Proxmox-MCP
 cd /root/Proxmox-MCP
 pip install -r requirements.txt
 cp .env.example .env
@@ -368,13 +385,13 @@ Configure your MCP Client node:
 ```bash
 python3 main.py --mcp-server
 ```
-*Full feature set: 13 tools + 5 AI prompts + resources*
+*Comprehensive feature set: 13 tools + 5 AI prompts + 4 resources*
 
 **Start enhanced HTTP server (remote n8n):**
 ```bash
 python3 main.py --mcp-http --host 0.0.0.0 --port 8000
 ```
-*Identical feature set: 13 tools + 5 AI prompts + resources*
+*Identical feature set: 13 tools + 5 AI prompts + 4 resources*
 
 **Test connectivity and validate setup:**
 ```bash
@@ -414,20 +431,35 @@ curl http://YOUR-SERVER-IP:8000/health
 
 ## 🏗️ Setup & Installation
 
-## 📦 requirements.txt (recommended)
+## 📦 requirements.txt
+
+The following Python packages are required:
 
 ```
 mcp
 proxmoxer
 requests
 aiohttp
+aiohttp-cors
 python-dotenv
 configparser
 apscheduler
+gotify
+websockets
+fastapi
+uvicorn
+pydantic
 ```
 
+Install all dependencies with:
+```bash
+pip install -r requirements.txt
+```
+
+### Prerequisites
+
 - Python 3.10+  
-- `pip` or `uv` for dependency management  
+- `pip` for dependency management  
 - Proxmox VE environment with API access or event hooks enabled
 
 ### Clone the Repository
@@ -557,11 +589,14 @@ python main.py --test-connection
 🎉 All nodes and IO modules are reachable and ready!
 ```
 
-Once all tests pass, you can start the full MCP server:
+Once all tests pass, you can start the MCP server in your preferred mode:
 
 ```bash
-# Start MCP Server with real-time event processing
-python main.py
+# Start MCP stdio server (for local n8n)
+python3 main.py --mcp-server
+
+# OR start MCP HTTP server (for remote n8n)
+python3 main.py --mcp-http --host 0.0.0.0 --port 8000
 ```
 
 ---
@@ -614,7 +649,8 @@ nano .env
 1. **Run diagnostics**: `python3 main.py --test-connection`
 2. **Check logs**: Look for error messages in terminal output
 3. **Validate configuration**: Review `.env` file settings
-4. **Test components individually**: Use the setup script for targeted testing
+4. **Review documentation**: See `modules/Enhanced_Files/QUICK_START.md` for quick setup guide
+5. **Test MCP tools**: Use n8n's test mode to verify individual tool functionality
 
 ---
 
