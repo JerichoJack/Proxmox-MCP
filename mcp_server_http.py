@@ -1818,16 +1818,6 @@ class MCPHTTPServer:
             await runner.cleanup()
             return
         
-<<<<<<< HEAD
-        print(f"🌐 Proxmox MCP HTTP Server started", file=sys.stderr)
-        print(f"� Server bound to: {self.host}:{self.port}", file=sys.stderr)
-        print(f"�📡 WebSocket endpoint: ws://{self.host}:{self.port}/ws", file=sys.stderr)
-        print(f"🔗 HTTP endpoint: http://{self.host}:{self.port}/mcp", file=sys.stderr)
-        print(f"🏥 Health check: http://{self.host}:{self.port}/health", file=sys.stderr)
-        print("", file=sys.stderr)
-        print("🔧 N8N MCP CLIENT CONFIGURATION:", file=sys.stderr)
-        print(f"   Endpoint URL: http://{self.host}:{self.port}/mcp", file=sys.stderr)
-=======
         print(f"🌐 Enhanced Proxmox MCP HTTP Server started", file=sys.stderr)
         print(f"📡 WebSocket endpoint: ws://{self.host}:{self.port}/ws", file=sys.stderr)
         print(f"🔗 HTTP endpoint: http://{self.host}:{self.port}/mcp", file=sys.stderr)
@@ -1846,7 +1836,6 @@ class MCPHTTPServer:
         print("   Option 1 - WebSocket:", file=sys.stderr)
         print("   Connection Type: websocket", file=sys.stderr)
         print(f"   Endpoint: ws://{self.host}:{self.port}/ws", file=sys.stderr)
->>>>>>> 3cb3d4fb59abe8bda4e00d5abaa718d3aeb5ea71
         print("", file=sys.stderr)
         print("🧪 Test the server with:", file=sys.stderr)
         print(f"   python test_mcp_server.py", file=sys.stderr)
